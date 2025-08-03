@@ -1,4 +1,5 @@
 import SwiftUI
+import BlindLogUI
 
 @main
 struct BlindLogApp: App {

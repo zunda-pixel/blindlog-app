@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2EFC9E0A2E3F9BEC004FB93D /* BlindLogUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2EFC9E092E3F9BEC004FB93D /* BlindLogUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		2E0207DE2E3F998A00E23AF2 /* BlindLog.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BlindLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2EFC9E072E3F9BD5004FB93D /* BlindLogKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = BlindLogKit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2EFC9E0A2E3F9BEC004FB93D /* BlindLogUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +39,8 @@
 			isa = PBXGroup;
 			children = (
 				2E0207E02E3F998A00E23AF2 /* BlindLog */,
+				2EFC9E072E3F9BD5004FB93D /* BlindLogKit */,
+				2EFC9E082E3F9BEC004FB93D /* Frameworks */,
 				2E0207DF2E3F998A00E23AF2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +51,13 @@
 				2E0207DE2E3F998A00E23AF2 /* BlindLog.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2EFC9E082E3F9BEC004FB93D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -65,6 +80,7 @@
 			);
 			name = BlindLog;
 			packageProductDependencies = (
+				2EFC9E092E3F9BEC004FB93D /* BlindLogUI */,
 			);
 			productName = BlindLog;
 			productReference = 2E0207DE2E3F998A00E23AF2 /* BlindLog.app */;
@@ -345,6 +361,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2EFC9E092E3F9BEC004FB93D /* BlindLogUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BlindLogUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2E0207D62E3F998A00E23AF2 /* Project object */;
 }
