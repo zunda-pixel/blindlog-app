@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
   name: "BlindLogKit",
+  defaultLocalization: "en",
   platforms: [
     .iOS(.v26),
     .macOS(.v26)
