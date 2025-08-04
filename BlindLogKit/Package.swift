@@ -7,13 +7,13 @@ let package = Package(
   defaultLocalization: "en",
   platforms: [
     .iOS(.v26),
-    .macOS(.v26)
+    .macOS(.v26),
   ],
   products: [
     .library(
       name: "BlindLogUI",
       targets: ["BlindLogUI"]
-    ),
+    )
   ],
   targets: [
     .target(
@@ -24,6 +24,6 @@ let package = Package(
       dependencies: [
         .target(name: "BlindLogUI")
       ]
-    )
+    ),
   ]
 )
