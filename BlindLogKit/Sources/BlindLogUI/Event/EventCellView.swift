@@ -17,12 +17,14 @@ extension EventListView {
           } icon: {
             Image(systemName: "calendar")
           }
+          .labelIconToTitleSpacing(1)
 
           Label {
             Text(event.answerAnnouncementDate, style: .date)
           } icon: {
             Image(systemName: "checkmark")
           }
+          .labelIconToTitleSpacing(1)
         }
         .font(.caption)
 
@@ -31,6 +33,7 @@ extension EventListView {
         } icon: {
           Image(systemName: "storefront")
         }
+        .labelIconToTitleSpacing(1)
         .font(.caption)
       }
     }

@@ -27,7 +27,9 @@ struct EventListView: View {
 
       }
       .navigationTitle(Text("Events"))
+      #if !os(macOS)
       .listStyle(.insetGrouped)
+      #endif
     }
   }
 }

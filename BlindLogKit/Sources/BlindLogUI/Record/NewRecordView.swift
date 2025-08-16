@@ -2,7 +2,10 @@ import SwiftUI
 
 struct Area: Identifiable, Hashable, Sendable, Codable {
   var id: UUID
+  var parentId: UUID?
   var name: String
+  
+  var localizedNames: [String: String]
 }
 
 struct NewRecordView: View {
@@ -64,7 +67,9 @@ struct NewRecordView: View {
           .tag(answer.wrappedValue.id)
       }
     }
+    #if !os(macOS)
     .tabViewStyle(.page(indexDisplayMode: .never))
+    #endif
     .safeAreaInset(edge: .top) {
       VStack(alignment: .leading, spacing: 30) {
         Button {
@@ -92,16 +97,24 @@ struct NewRecordView: View {
 }
 
 struct AnswerEditor: View {
+  @State var isPresentedAreaPicker = false
   @Binding var answer: NewRecordView.Answer
-
+  @Environment(\.locale) var locale
+  
   var body: some View {
     List {
       Section {
         Button {
-
+          isPresentedAreaPicker.toggle()
         } label: {
-          Text("Select Production Area")
-            .contentShape(.rect)
+          if let area = answer.productionArea {
+            Text(area.localizedNames[locale.language.languageCode?.identifier ?? ""] ?? area.name)
+          } else {
+            Text("Select Production Area")
+          }
+        }
+        .sheet(isPresented: $isPresentedAreaPicker) {
+          ProductAreaPicker(area: $answer.productionArea)
         }
       } header: {
         Text("Production Area")
@@ -112,7 +125,9 @@ struct AnswerEditor: View {
           Text("Vintage")
         }
         .textContentType(.birthdateYear)
+        #if !os(macOS)
         .keyboardType(.numberPad)
+        #endif
       } header: {
         Text("Vintage")
       }

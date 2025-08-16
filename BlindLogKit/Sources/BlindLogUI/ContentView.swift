@@ -27,7 +27,9 @@ public struct ContentView: View {
         }
       }
     }
+    #if !os(macOS)
     .tabBarMinimizeBehavior(.onScrollDown)
+    #endif
   }
 }
 
