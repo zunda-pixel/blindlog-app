@@ -91,11 +91,13 @@ struct GrapePicker: View {
       }
       .searchable(text: $model.searchText)
       .toolbar {
+        #if !os(macOS)
         ToolbarItem(placement: .topBarTrailing) {
           Button(role: .close) {
             dismiss()
           }
         }
+        #endif
       }
     }
   }
