@@ -98,8 +98,10 @@ struct NewRecordView: View {
 
 struct AnswerEditor: View {
   @State var isPresentedAreaPicker = false
+  @State var isPresentedMultiGrapePicker = false
   @Binding var answer: NewRecordView.Answer
   @Environment(\.locale) var locale
+  @State var newGrape: Grape?
   
   var body: some View {
     List {
@@ -121,10 +123,9 @@ struct AnswerEditor: View {
       }
 
       Section {
-        TextField(value: $answer.vintage, formatter: NumberFormatter()) {
+        TextField(value: $answer.vintage, format: .number) {
           Text("Vintage")
         }
-        .textContentType(.birthdateYear)
         #if !os(macOS)
         .keyboardType(.numberPad)
         #endif
@@ -133,16 +134,20 @@ struct AnswerEditor: View {
       }
 
       Section {
-        ForEach(answer.grapes) { grape in
+        ForEach($answer.grapes) { grape in
           HStack {
             LabeledContent {
-              Text(grape.grape.name)
+              Text(grape.wrappedValue.grape.localizedNames[locale.language.languageCode?.identifier ?? ""] ?? grape.wrappedValue.grape.name)
             } label: {
               Text("Name")
             }
-
             LabeledContent {
-              Text("\(grape.percent * 100)%")
+              TextField(value: grape.percent, format: .percent) {
+                Text("Percent")
+              }
+              #if !os(macOS)
+              .keyboardType(.numberPad)
+              #endif
             } label: {
               Text("Percent")
             }
@@ -153,13 +158,18 @@ struct AnswerEditor: View {
       }
       .sectionActions {
         Button {
-
+          isPresentedMultiGrapePicker.toggle()
         } label: {
           Text("Add Grape")
         }
         .contentShape(.rect)
+        .sheet(isPresented: $isPresentedMultiGrapePicker) {
+          guard let newGrape else { return }
+          answer.grapes.append(.init(id: .init(), grape: newGrape, percent: 1.00))
+        } content: {
+          GrapePicker(grape: $newGrape)
+        }
       }
-
       Section("Note") {
         TextEditor(text: $answer.note)
           .frame(minHeight: 200)
@@ -167,4 +177,8 @@ struct AnswerEditor: View {
     }
     .scrollDismissesKeyboard(.immediately)
   }
+}
+
+#Preview {
+  NewRecordView()
 }
