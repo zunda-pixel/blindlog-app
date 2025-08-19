@@ -69,6 +69,16 @@
         }
       }
     },
+    "Alcohol Percentage" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アルコール度数"
+          }
+        }
+      }
+    },
     "Answers" : {
       "localizations" : {
         "ja" : {

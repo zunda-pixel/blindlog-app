@@ -40,7 +40,7 @@ struct NewRecordView: View {
           vintage: vintage - 1,
           productionArea: nil,
           grapes: [],
-          alcoholPercentage: 11.0
+          alcoholPercentage: 0.11
         ),
         .init(
           id: UUID(),
@@ -48,7 +48,7 @@ struct NewRecordView: View {
           vintage: vintage - 2,
           productionArea: nil,
           grapes: [],
-          alcoholPercentage: 12.0
+          alcoholPercentage: 0.12
         ),
         .init(
           id: UUID(),
@@ -56,7 +56,7 @@ struct NewRecordView: View {
           vintage: vintage - 3,
           productionArea: nil,
           grapes: [],
-          alcoholPercentage: 13.0
+          alcoholPercentage: 0.13
         ),
       ]
       self.selectedAnswerId = answers.first!.id
@@ -201,6 +201,18 @@ struct AnswerEditor: View {
       }
       
       Section {
+        LabeledContent {
+          HStack {
+            Slider(value: $answer.alcoholPercentage, in: 0...1, step: 0.1)
+            Text(answer.alcoholPercentage, format: .percent.precision(.fractionLength(1)))
+          }
+        } label: {
+          HStack {
+            Text("Alcohol Percentage")
+            Spacer()
+          }
+        }
+        
         LabeledContent {
           HStack {
             Slider(value: $answer.colorIntensity, in: 0...1, step: 0.1)
