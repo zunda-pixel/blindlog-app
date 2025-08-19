@@ -89,12 +89,32 @@
         }
       }
     },
+    "Color Intensity" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "色の濃さ"
+          }
+        }
+      }
+    },
     "Detail" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "詳細"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完了"
           }
         }
       }
@@ -115,6 +135,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ぶどう"
+          }
+        }
+      }
+    },
+    "Minerality" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミネラル感"
           }
         }
       }
@@ -205,6 +235,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "生産地を選択"
+          }
+        }
+      }
+    },
+    "Sweety" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "甘さ"
+          }
+        }
+      }
+    },
+    "Tannin" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タンニン"
           }
         }
       }

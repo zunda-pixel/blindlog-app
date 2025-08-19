@@ -35,6 +35,7 @@ public struct ContentView: View {
 
 #Preview {
   ContentView()
+    .environment(\.locale, .init(identifier: "ja"))
 }
 
 enum TabItem: CaseIterable {

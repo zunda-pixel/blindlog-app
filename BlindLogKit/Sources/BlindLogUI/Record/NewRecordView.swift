@@ -17,6 +17,10 @@ struct NewRecordView: View {
     var grapes: [GrapePercentage]
     var alcoholPercentage: Double
     var acidity: Double = 0.5
+    var tannin: Double = 0.5
+    var minerality: Double = 0.5
+    var sweety: Double = 0.5
+    var colorIntensity: Double = 0.5
     var note: AttributedString = .init()
   }
 
@@ -61,7 +65,8 @@ struct NewRecordView: View {
   }
 
   @State var model = Model()
-
+  @Environment(\.dismiss) var dismiss
+  
   var body: some View {
     TabView(selection: $model.selectedAnswerId) {
       ForEach($model.answers) { answer in
@@ -74,6 +79,16 @@ struct NewRecordView: View {
     #endif
     .safeAreaInset(edge: .top) {
       VStack(alignment: .leading, spacing: 30) {
+        HStack {
+          Spacer()
+          Button {
+            dismiss()
+          } label: {
+            Label("Done", systemImage: "checkmark")
+          }
+          .buttonStyle(.borderedProminent)
+        }
+        
         if let event = model.event {
           EventListView.CellView(event: event)
             .contentShape(.rect)
@@ -188,6 +203,18 @@ struct AnswerEditor: View {
       Section {
         LabeledContent {
           HStack {
+            Slider(value: $answer.colorIntensity, in: 0...1, step: 0.1)
+            Text(answer.colorIntensity, format: .percent.precision(.fractionLength(1)))
+          }
+        } label: {
+          HStack {
+            Text("Color Intensity")
+            Spacer()
+          }
+        }
+        
+        LabeledContent {
+          HStack {
             Slider(value: $answer.acidity, in: 0...1, step: 0.1)
             Text(answer.acidity, format: .percent.precision(.fractionLength(1)))
           }
@@ -197,7 +224,42 @@ struct AnswerEditor: View {
             Spacer()
           }
         }
-
+        
+        LabeledContent {
+          HStack {
+            Slider(value: $answer.tannin, in: 0...1, step: 0.1)
+            Text(answer.tannin, format: .percent.precision(.fractionLength(1)))
+          }
+        } label: {
+          HStack {
+            Text("Tannin")
+            Spacer()
+          }
+        }
+        
+        LabeledContent {
+          HStack {
+            Slider(value: $answer.minerality, in: 0...1, step: 0.1)
+            Text(answer.minerality, format: .percent.precision(.fractionLength(1)))
+          }
+        } label: {
+          HStack {
+            Text("Minerality")
+            Spacer()
+          }
+        }
+        
+        LabeledContent {
+          HStack {
+            Slider(value: $answer.sweety, in: 0...1, step: 0.1)
+            Text(answer.sweety, format: .percent.precision(.fractionLength(1)))
+          }
+        } label: {
+          HStack {
+            Text("Sweety")
+            Spacer()
+          }
+        }
       } header: {
         Text("Detail")
       }
@@ -215,4 +277,5 @@ struct AnswerEditor: View {
 
 #Preview {
   NewRecordView()
+    .environment(\.locale, Locale(identifier: "ja"))
 }
