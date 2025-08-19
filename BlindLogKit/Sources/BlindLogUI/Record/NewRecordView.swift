@@ -16,6 +16,7 @@ struct NewRecordView: View {
     var productionArea: Area?
     var grapes: [GrapePercentage]
     var alcoholPercentage: Double
+    var acidity: Double = 0.5
     var note: AttributedString = .init()
   }
 
@@ -171,9 +172,29 @@ struct AnswerEditor: View {
           GrapePicker(grape: $newGrape)
         }
       }
-      Section("Note") {
+      
+      Section {
+        LabeledContent {
+          HStack {
+            Slider(value: $answer.acidity, in: 0...1, step: 0.1)
+            Text(answer.acidity, format: .percent.precision(.fractionLength(1)))
+          }
+        } label: {
+          HStack {
+            Text("Acidity")
+            Spacer()
+          }
+        }
+
+      } header: {
+        Text("Detail")
+      }
+      
+      Section {
         TextEditor(text: $answer.note)
           .frame(minHeight: 200)
+      } header: {
+        Text("Note")
       }
     }
     .scrollDismissesKeyboard(.immediately)

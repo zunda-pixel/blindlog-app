@@ -39,6 +39,16 @@
       },
       "shouldTranslate" : false
     },
+    "Acidity" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "酸度"
+          }
+        }
+      }
+    },
     "Add Grape" : {
       "localizations" : {
         "ja" : {
@@ -75,6 +85,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ブラインドログ"
+          }
+        }
+      }
+    },
+    "Detail" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細"
           }
         }
       }
