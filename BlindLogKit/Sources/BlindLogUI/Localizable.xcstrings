@@ -129,17 +129,6 @@
         }
       }
     },
-    "Name" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "名前"
-          }
-        }
-      }
-    },
     "Note" : {
       "localizations" : {
         "ja" : {
