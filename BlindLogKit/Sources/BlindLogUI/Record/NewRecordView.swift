@@ -136,20 +136,20 @@ struct AnswerEditor: View {
       Section {
         ForEach($answer.grapes) { grape in
           HStack {
-            LabeledContent {
-              Text(grape.wrappedValue.grape.localizedNames[locale.language.languageCode?.identifier ?? ""] ?? grape.wrappedValue.grape.name)
-            } label: {
-              Text("Name")
-            }
-            LabeledContent {
-              TextField(value: grape.percent, format: .percent) {
-                Text("Percent")
-              }
-              #if !os(macOS)
-              .keyboardType(.numberPad)
-              #endif
-            } label: {
+            Text(grape.wrappedValue.grape.localizedNames[locale.language.languageCode?.identifier ?? ""] ?? grape.wrappedValue.grape.name)
+            Spacer()
+            TextField(value: grape.percent, format: .percent) {
               Text("Percent")
+            }
+            .frame(maxWidth: 70)
+            .textFieldStyle(.roundedBorder)
+            #if !os(macOS)
+            .keyboardType(.numberPad)
+            #endif
+          }
+          .contextMenu {
+            Button(role: .destructive) {
+              answer.grapes.removeAll(where: { $0.id == grape.id })
             }
           }
         }
@@ -165,7 +165,8 @@ struct AnswerEditor: View {
         .contentShape(.rect)
         .sheet(isPresented: $isPresentedMultiGrapePicker) {
           guard let newGrape else { return }
-          answer.grapes.append(.init(id: .init(), grape: newGrape, percent: 1.00))
+          guard answer.grapes.contains(where: { $0.grape.id == newGrape.id }) == false else { return }
+          answer.grapes.append(.init(id: UUID(), grape: newGrape, percent: 1.00))
         } content: {
           GrapePicker(grape: $newGrape)
         }

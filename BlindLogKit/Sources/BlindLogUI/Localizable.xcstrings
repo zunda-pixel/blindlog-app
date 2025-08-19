@@ -28,6 +28,7 @@
       }
     },
     "%lf%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -35,7 +36,8 @@
             "value" : "%lf%%"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Add Grape" : {
       "localizations" : {
@@ -108,6 +110,7 @@
       }
     },
     "Name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -132,7 +135,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "パーセント"
+            "value" : "割合"
           }
         }
       }
