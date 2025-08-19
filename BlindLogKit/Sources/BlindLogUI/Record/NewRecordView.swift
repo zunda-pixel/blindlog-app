@@ -25,7 +25,8 @@ struct NewRecordView: View {
     var event: Event?
     var answers: [Answer]
     var selectedAnswerId: Answer.ID?
-
+    var isPresentedEventPicker: Bool = false
+    
     init() {
       let vintage = Calendar.current.component(.year, from: .now)
       let answers: [Answer] = [
@@ -73,14 +74,22 @@ struct NewRecordView: View {
     #endif
     .safeAreaInset(edge: .top) {
       VStack(alignment: .leading, spacing: 30) {
-        Button {
-
-        } label: {
-          Text("Select Event")
-            .font(.title3.bold())
-            .frame(maxWidth: .infinity)
+        if let event = model.event {
+          EventListView.CellView(event: event)
+            .contentShape(.rect)
+            .onTapGesture {
+              model.isPresentedEventPicker.toggle()
+            }
+        } else {
+          Button {
+            model.isPresentedEventPicker.toggle()
+          } label: {
+            Text(model.event?.name ?? "Select Event")
+              .font(.title3.bold())
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.borderedProminent)
         }
-        .buttonStyle(.borderedProminent)
 
         Picker(selection: $model.selectedAnswerId) {
           ForEach(model.answers) { answer in
@@ -93,6 +102,9 @@ struct NewRecordView: View {
         .pickerStyle(.segmented)
       }
       .padding(20)
+      .sheet(isPresented: $model.isPresentedEventPicker) {
+        EventPicker(event: $model.event)
+      }
     }
   }
 }

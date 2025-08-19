@@ -89,6 +89,7 @@ struct GrapePicker: View {
           .sectionIndexLabel(Text(namePrefix))
         }
       }
+      .navigationTitle(Text("Select Grape"))
       .searchable(text: $model.searchText)
       .toolbar {
         #if !os(macOS)

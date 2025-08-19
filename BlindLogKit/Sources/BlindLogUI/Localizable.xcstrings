@@ -189,6 +189,16 @@
         }
       }
     },
+    "Select Grape" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ぶどうを選択"
+          }
+        }
+      }
+    },
     "Select Production Area" : {
       "localizations" : {
         "ja" : {
