@@ -15,9 +15,15 @@ let package = Package(
       targets: ["BlindLogUI"]
     )
   ],
+  dependencies: [
+    .package(url: "https://github.com/gohanlon/swift-memberwise-init-macro.git", from: "0.5.2")
+  ],
   targets: [
     .target(
-      name: "BlindLogUI"
+      name: "BlindLogUI",
+      dependencies: [
+        .product(name: "MemberwiseInit", package: "swift-memberwise-init-macro"),
+      ]
     ),
     .testTarget(
       name: "BlindLogUITests",

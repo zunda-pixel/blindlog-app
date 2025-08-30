@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RecordListView: View {
+  @Environment(\.calendar) var calendar
   @Observable
   final class Model {
     var records: [Record] = []
@@ -49,7 +50,7 @@ struct RecordListView: View {
         }
       }
       .sheet(isPresented: $model.isPresentedNewRecordSheet) {
-        NewRecordView()
+        NewRecordView(model: .init(defaultVintage: calendar.component(.year, from: .now)))
       }
     }
   }
