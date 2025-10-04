@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "%@" : {
       "localizations" : {
         "ja" : {
@@ -49,6 +52,9 @@
         }
       }
     },
+    "Add Email" : {
+
+    },
     "Add Grape" : {
       "localizations" : {
         "ja" : {
@@ -68,6 +74,12 @@
           }
         }
       }
+    },
+    "Add Passkey" : {
+
+    },
+    "Add sign option later" : {
+
     },
     "Alcohol Percentage" : {
       "localizations" : {
@@ -109,6 +121,9 @@
         }
       }
     },
+    "continue as a guest" : {
+
+    },
     "Detail" : {
       "localizations" : {
         "ja" : {
@@ -128,6 +143,9 @@
           }
         }
       }
+    },
+    "Email" : {
+
     },
     "Events" : {
       "localizations" : {
@@ -169,6 +187,9 @@
         }
       }
     },
+    "Name" : {
+
+    },
     "Note" : {
       "localizations" : {
         "ja" : {
@@ -179,6 +200,9 @@
         }
       }
     },
+    "Passkey name is empty" : {
+
+    },
     "Percent" : {
       "localizations" : {
         "ja" : {
@@ -188,6 +212,9 @@
           }
         }
       }
+    },
+    "Please enter a name that will be displayed in the password management app." : {
+
     },
     "Production Area" : {
       "localizations" : {
@@ -249,6 +276,15 @@
         }
       }
     },
+    "Send Email" : {
+
+    },
+    "Sign in Options" : {
+
+    },
+    "Sign up" : {
+
+    },
     "Sweety" : {
       "localizations" : {
         "ja" : {
@@ -278,6 +314,9 @@
           }
         }
       }
+    },
+    "Welcome to the app!" : {
+
     }
   },
   "version" : "1.1"
