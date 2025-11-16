@@ -206,6 +206,8 @@ struct AnswerEditor: View {
       noteSection
     }
     .scrollDismissesKeyboard(.immediately)
+    #if !os(macOS)
     .listSectionSpacing(0)
+    #endif
   }
 }
