@@ -1,14 +1,46 @@
+import AuthenticationServices
 import SwiftUI
+
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 struct AddSignInOptionView: View {
   @Environment(NavigationRouter.self) var router
   @Environment(AuthStore.self) var authStore
+  @Environment(StartView.ViewModel.self) var startViewModel
+  
   @State var isPresentedPasskeyAddAlert = false
   @State var passkeyName = ""
   @State var isPresentedPasskeyNameIsEmpty = false
   
   func addPasskey() async throws {
-    
+    let api = API()
+    let challenge = try await api.getChallenge(token: authStore.userToken.token)
+    let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+    let controller = PasskeyController(anchor: .init(windowScene: windowScene!))
+    let authorization = try await controller.addPasskey(
+      domain: api.baseURL.host()!,
+      userId: authStore.user.id,
+      userName: passkeyName,
+      challenge: challenge,
+      preferImmediatelyAvailableCredentials: false
+    )
+
+    guard
+      let credential = authorization.credential
+        as? ASAuthorizationPlatformPublicKeyCredentialRegistration
+    else {
+      throw PasskeyAddError.unexpectedCredential
+    }
+
+    try await api.addPasskey(
+      token: authStore.userToken.token,
+      challenge: challenge,
+      credentail: credential
+    )
   }
   
   var body: some View {
@@ -71,7 +103,7 @@ struct AddSignInOptionView: View {
       
       Section {
         Button {
-          
+          startViewModel.isCompleted = true
         } label: {
           Text("Add sign option later")
         }
@@ -91,4 +123,18 @@ struct AddSignInOptionView: View {
     user: .init(id: .init()),
     userToken: .init(userID: .init(), token: "token", refreshToken: "refreshToken")
   )))
+}
+
+private enum PasskeyAddError: LocalizedError {
+  case missingPresentationAnchor
+  case unexpectedCredential
+
+  var errorDescription: String? {
+    switch self {
+    case .missingPresentationAnchor:
+      return "Could not find a window to present the passkey sheet."
+    case .unexpectedCredential:
+      return "The passkey flow returned an unexpected credential."
+    }
+  }
 }

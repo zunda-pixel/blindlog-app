@@ -58,6 +58,7 @@ struct StartView: View {
               do {
                 let userToken = try await api.getNewUser()
                 let user = try await api.getMe(token: userToken)
+                Defaults[.userID] = userToken.userID
                 router.items.append(.addSignInOption(user, userToken))
               } catch {
                 print(error)
