@@ -7,7 +7,17 @@ struct API {
   var baseURL: URL = URL(string: "https://blindlog-api-748783607203.asia-northeast1.run.app")!
   
   func getMe(token: UserToken) async throws -> User {
-    fatalError()
+    let endpoint = baseURL.appending(path: "me")
+    let request = HTTPRequest(
+      method: .get,
+      url: endpoint,
+      headerFields:  [
+        .authorization: "Bearer \(token.token)",
+        .contentType: "application/json"
+      ]
+    )
+    let (data, _) = try await URLSession.shared.data(for: request)
+    return try JSONDecoder().decode(User.self, from: data)
   }
   
   func getNewUser() async throws -> UserToken {

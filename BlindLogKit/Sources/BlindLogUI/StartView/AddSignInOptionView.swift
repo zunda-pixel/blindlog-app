@@ -89,6 +89,6 @@ struct AddSignInOptionView: View {
   .environment(router)
   .environment((AuthStore(
     user: .init(id: .init()),
-    userToken: .init(id: .init(), token: "token", refreshToken: "refreshToken")
+    userToken: .init(userID: .init(), token: "token", refreshToken: "refreshToken")
   )))
 }
