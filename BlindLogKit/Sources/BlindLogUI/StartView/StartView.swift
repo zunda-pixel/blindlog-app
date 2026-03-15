@@ -44,6 +44,17 @@ struct StartView: View {
 
   @State var router = NavigationRouter()
   let api = API()
+
+  func createUser() async {
+    do {
+      let userToken = try await api.getNewUser()
+      let user = try await api.getMe(token: userToken)
+      Defaults[.userID] = userToken.userID
+      router.items.append(.addSignInOption(user, userToken))
+    } catch {
+      print(error)
+    }
+  }
   
   var body: some View {
     NavigationStack(path: $router.items) {
@@ -55,14 +66,7 @@ struct StartView: View {
         Section {
           Button {
             Task {
-              do {
-                let userToken = try await api.getNewUser()
-                let user = try await api.getMe(token: userToken)
-                Defaults[.userID] = userToken.userID
-                router.items.append(.addSignInOption(user, userToken))
-              } catch {
-                print(error)
-              }
+              await createUser()
             }
           } label: {
             Text("continue as a guest")
@@ -71,9 +75,11 @@ struct StartView: View {
         
         Section {
           Button {
-            
+            Task {
+              await createUser()
+            }
           } label: {
-            Text("Sign up")
+            Text("Sign in with Passkey")
           }
         }
       }
