@@ -1,4 +1,5 @@
 import SwiftUI
+import Defaults
 
 struct MyPageView: View {
   var body: some View {
@@ -9,6 +10,13 @@ struct MyPageView: View {
         } icon: {
           Image(systemName: "person.crop.circle")
         }
+        
+        Button {
+          Defaults[.userID] = nil
+        } label: {
+          Text("Logout")
+        }
+        .buttonStyle(.borderedProminent)
       }
     }
   }

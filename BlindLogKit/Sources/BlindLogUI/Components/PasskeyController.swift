@@ -64,13 +64,8 @@ final class PasskeyController: NSObject, ASAuthorizationControllerPresentationCo
     let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: domain)
     
     let assertionRequest = publicKeyCredentialProvider.createCredentialAssertionRequest(challenge: challenge)
-    
-    // Also allow the user to use a saved password, if they have one.
-    let passwordCredentialProvider = ASAuthorizationPasswordProvider()
-    let passwordRequest = passwordCredentialProvider.createRequest()
-    
-    // Pass in any mix of supported sign-in request types.
-    let authController = ASAuthorizationController(authorizationRequests: [ assertionRequest, passwordRequest ] )
+
+    let authController = ASAuthorizationController(authorizationRequests: [ assertionRequest ] )
     authController.delegate = self
     authController.presentationContextProvider = self
     

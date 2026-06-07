@@ -1,6 +1,13 @@
 import SwiftUI
 import Valet
 import Defaults
+import AuthenticationServices
+
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 extension Valet {
   static var shared: Valet {
@@ -45,15 +52,73 @@ struct StartView: View {
   @State var router = NavigationRouter()
   let api = API()
 
+  func store(userToken: UserToken) throws {
+    let data = try JSONEncoder().encode(userToken)
+    try Valet.shared.setObject(data, forKey: "userToken:\(userToken.userID.uuidString)")
+    Defaults[.userID] = userToken.userID
+  }
+
   func createUser() async {
     do {
       let userToken = try await api.getNewUser()
       let user = try await api.getMe(token: userToken)
-      Defaults[.userID] = userToken.userID
-      router.items.append(.addSignInOption(user, userToken))
+      try store(userToken: userToken)
+      await MainActor.run {
+        router.items.append(.addSignInOption(user, userToken))
+      }
     } catch {
       print(error)
     }
+  }
+
+  func signInWithPasskey() async {
+    do {
+      let challenge = try await api.getChallenge()
+      let controller = try PasskeyController(anchor: currentPresentationAnchor())
+      let authorization = try await controller.signIn(
+        domain: api.baseURL.host()!,
+        challenge: challenge,
+        preferImmediatelyAvailableCredentials: false
+      )
+
+      guard
+        let credential = authorization.credential
+          as? ASAuthorizationPlatformPublicKeyCredentialAssertion
+      else {
+        throw PasskeySignInError.unexpectedCredential
+      }
+
+      let userToken = try await api.getToken(challenge: challenge, credential: credential)
+      try store(userToken: userToken)
+      await MainActor.run {
+        viewModel.isCompleted = true
+      }
+    } catch {
+      print(error)
+    }
+  }
+
+  func currentPresentationAnchor() throws -> ASPresentationAnchor {
+#if canImport(UIKit)
+    let windowScene = UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .first
+    let window = windowScene?.windows.first(where: \.isKeyWindow) ?? windowScene?.windows.first
+
+    guard let window else {
+      throw PasskeySignInError.missingPresentationAnchor
+    }
+
+    return window
+#elseif canImport(AppKit)
+    guard let window = NSApp.keyWindow ?? NSApp.windows.first else {
+      throw PasskeySignInError.missingPresentationAnchor
+    }
+
+    return window
+#else
+    throw PasskeySignInError.missingPresentationAnchor
+#endif
   }
   
   var body: some View {
@@ -76,7 +141,7 @@ struct StartView: View {
         Section {
           Button {
             Task {
-              await createUser()
+              await signInWithPasskey()
             }
           } label: {
             Text("Sign in with Passkey")
@@ -116,7 +181,10 @@ final class AuthStore {
   var user: User
   var userToken: UserToken
   
-  init(user: User, userToken: UserToken) {
+  init(
+    user: User,
+    userToken: UserToken
+  ) {
     self.user = user
     self.userToken = userToken
   }
@@ -124,4 +192,18 @@ final class AuthStore {
 
 #Preview {
   StartView()
+}
+
+private enum PasskeySignInError: LocalizedError {
+  case missingPresentationAnchor
+  case unexpectedCredential
+
+  var errorDescription: String? {
+    switch self {
+    case .missingPresentationAnchor:
+      return "Could not find a window to present the passkey sheet."
+    case .unexpectedCredential:
+      return "The passkey flow returned an unexpected credential."
+    }
+  }
 }

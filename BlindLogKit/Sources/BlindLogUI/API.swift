@@ -4,7 +4,7 @@ import HTTPTypesFoundation
 import AuthenticationServices
 
 struct API {
-  var baseURL: URL = URL(string: "https://blindlog-api-748783607203.asia-northeast1.run.app")!
+  var baseURL: URL = URL(string: "https://api.blindlog.me")!
   
   func getMe(token: UserToken) async throws -> User {
     let endpoint = baseURL.appending(path: "me")
@@ -71,9 +71,9 @@ struct API {
     challenge: Data,
     credential: ASAuthorizationPlatformPublicKeyCredentialAssertion
   ) async throws -> UserToken {
-    let payload = AddPasskeyPayload(challenge: challenge, credential: credential)
+    let payload = PasskeyTokenPayload(challenge: challenge, credential: credential)
     let body = try JSONEncoder().encode(payload)
-    let endpoint = baseURL.appending(path: "token")
+    let endpoint = baseURL.appending(path: "token/passkey")
     let request = HTTPRequest(
       method: .post,
       url: endpoint,
@@ -123,6 +123,35 @@ struct AddPasskeyPayload: Encodable {
   }
 }
 
+struct PasskeyTokenPayload: Encodable {
+  var challenge: String
+  var id: String
+  var rawId: String
+  var type: String
+  var response: AssertionResponse
+  var authenticatorAttachment: String?
+
+  init(challenge: Data, credential: ASAuthorizationPlatformPublicKeyCredentialAssertion) {
+    let credentialID = credential.credentialID.base64URLEncodedString
+    self.challenge = challenge.base64URLEncodedString
+    self.id = credentialID
+    self.rawId = credentialID
+    self.type = "public-key"
+    self.response = .init(
+      clientDataJSON: credential.rawClientDataJSON.base64URLEncodedString,
+      authenticatorData: credential.rawAuthenticatorData.base64URLEncodedString,
+      signature: credential.signature.base64URLEncodedString
+    )
+    self.authenticatorAttachment = credential.attachment.label
+  }
+
+  struct AssertionResponse: Encodable {
+    var clientDataJSON: String
+    var authenticatorData: String
+    var signature: String
+  }
+}
+
 extension ASAuthorizationPublicKeyCredentialAttachment {
   var label: String {
     switch self {
@@ -130,5 +159,14 @@ extension ASAuthorizationPublicKeyCredentialAttachment {
     case .platform: "platform"
     default : "unknown"
     }
+  }
+}
+
+private extension Data {
+  var base64URLEncodedString: String {
+    base64EncodedString()
+      .replacingOccurrences(of: "+", with: "-")
+      .replacingOccurrences(of: "/", with: "_")
+      .replacingOccurrences(of: "=", with: "")
   }
 }

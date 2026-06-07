@@ -167,6 +167,9 @@
         }
       }
     },
+    "Logout" : {
+
+    },
     "Minerality" : {
       "localizations" : {
         "ja" : {
@@ -282,7 +285,7 @@
     "Sign in Options" : {
 
     },
-    "Sign up" : {
+    "Sign in with Passkey" : {
 
     },
     "Sweety" : {

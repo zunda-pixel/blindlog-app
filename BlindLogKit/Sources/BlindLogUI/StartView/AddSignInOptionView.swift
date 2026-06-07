@@ -86,9 +86,10 @@ struct AddSignInOptionView: View {
       }
       
       Section {
-        if let email = authStore.user.email {
-          Label(email, systemImage: "envelope")
-        } else {
+        ForEach(authStore.user.emails, id: \.email) { email in
+          Label(email.email, systemImage: "envelope")
+        }
+        if authStore.user.emails.isEmpty {
           Button {
             router.items.append(.sendVerifyEmailView)
           } label: {
@@ -120,8 +121,14 @@ struct AddSignInOptionView: View {
   }
   .environment(router)
   .environment((AuthStore(
-    user: .init(id: .init()),
-    userToken: .init(userID: .init(), token: "token", refreshToken: "refreshToken")
+    user: User.init(userID: .init(), emails: []),
+    userToken: UserToken(
+      userID: .init(),
+      token: "token",
+      tokenExpiredDate: .now,
+      refreshToken: "refreshToken",
+      refreshTokenExpiredDate: .now
+    )
   )))
 }
 
