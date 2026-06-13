@@ -14,6 +14,14 @@ struct APIWriteTests {
     return (API(token: token.token), token)
   }
 
+  /// Returns an authenticated client whose user already has a profile.
+  /// Organizing an event requires a profile, so event-related flows start here.
+  private func organizerAPI() async throws -> (api: API, token: UserToken) {
+    let (api, token) = try await authenticatedAPI()
+    _ = try await api.createProfile(CreateUserProfileRequest(name: "Test Organizer", imageID: nil))
+    return (api, token)
+  }
+
   private func sampleEventRequest() -> CreateEventRequest {
     let now = Date()
     return CreateEventRequest(
@@ -56,7 +64,7 @@ struct APIWriteTests {
 
   @Test
   func eventLifecycle() async throws {
-    let (api, _) = try await authenticatedAPI()
+    let (api, _) = try await organizerAPI()
 
     // Create + read.
     let created = try await api.createEvent(sampleEventRequest())
@@ -140,7 +148,7 @@ struct APIWriteTests {
 
   @Test
   func registerParticipant() async throws {
-    let (api, token) = try await authenticatedAPI()
+    let (api, token) = try await organizerAPI()
     let event = try await api.createEvent(sampleEventRequest())
 
     let participant = try await api.registerParticipant(eventID: event.id)
