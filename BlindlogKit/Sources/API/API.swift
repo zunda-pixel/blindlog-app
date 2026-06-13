@@ -2,63 +2,178 @@ import Foundation
 import HTTPClient
 import URLSessionHTTPClient
 
-struct API {
+/// Endpoints that require an authenticated user, identified by a bearer token.
+struct API: APIEndpoint {
   var baseURL = URL(string: "https://api.blindlog.me")!
   var httpClient = URLSession.shared
   var token: String
-  
+
+  // MARK: Current User
+
+  func me() async throws -> Me {
+    try await send(.get, "me", token: token)
+  }
+
+  func createProfile(_ request: CreateUserProfileRequest) async throws -> UserProfile {
+    try await send(.post, "me", token: token, body: encode(request))
+  }
+
+  func startEmailVerification(email: String) async throws {
+    try await send(.post, "email/verify/start", query: [URLQueryItem(name: "email", value: email)], token: token)
+  }
+
+  func confirmEmail(_ request: ConfirmEmailRequest) async throws {
+    try await send(.post, "email/verify", token: token, body: encode(request))
+  }
+
+  // MARK: Passkey
+
+  func addPasskey(_ passkey: AddPasskey, challenge: String) async throws {
+    try await send(
+      .post,
+      "passkey",
+      query: [URLQueryItem(name: "challenge", value: challenge)],
+      token: token,
+      body: encode(passkey)
+    )
+  }
+
+  // MARK: Users
+
+  func userProfile(userID: UUID) async throws -> UserProfile {
+    try await send(.get, "user_profile/\(userID.uuidString)", token: token)
+  }
+
+  func organizedEvents(userID: UUID) async throws -> [Event] {
+    try await send(.get, "users/\(userID.uuidString)/organized_events", token: token)
+  }
+
+  func participatingEvents(userID: UUID) async throws -> [Event] {
+    try await send(.get, "users/\(userID.uuidString)/participating_events", token: token)
+  }
+
+  // MARK: Images
+
+  func createImageUploadURL() async throws -> CreateImageUploadURLResponse {
+    try await send(.post, "images/upload_url", token: token)
+  }
+
+  func createImage(_ request: CreateImageRequest) async throws -> Image {
+    try await send(.post, "images", token: token, body: encode(request))
+  }
+
+  // MARK: Events
+
   func events() async throws -> [Event] {
-    let request = HTTPRequest(
-      method: .get,
-      url: baseURL.appending(path: "events"),
-      headerFields: [
-        .authorization: "Bearer \(token)",
-      ]
-    )
-    
-    let (data, response) = try await httpClient.data(for: request)
-
-    guard response.status.kind == .successful else {
-      throw AuthAPIError.unexpectedStatus(response.status)
-    }
-
-    return try JSONDecoder().decode([Event].self, from: data)
+    try await send(.get, "events", token: token)
   }
-}
 
-struct AuthAPI {
-  var baseURL = URL(string: "https://api.blindlog.me")!
-  var httpClient = URLSession.shared
-  
-  func guestAccount() async throws -> UserToken {
-    let request = HTTPRequest(
-      method: .post,
-      url: baseURL.appending(path: "user")
-    )
-    
-    let (data, response) = try await httpClient.data(for: request)
-
-    guard response.status.kind == .successful else {
-      throw AuthAPIError.unexpectedStatus(response.status)
-    }
-
-    return try JSONDecoder().decode(UserToken.self, from: data)
+  func createEvent(_ request: CreateEventRequest) async throws -> Event {
+    try await send(.post, "events", token: token, body: encode(request))
   }
-}
 
-enum AuthAPIError: Error {
-  case unexpectedStatus(HTTPResponse.Status)
-}
+  func event(id: UUID) async throws -> Event {
+    try await send(.get, "events/\(id.uuidString)", token: token)
+  }
 
-struct UserToken: Sendable, Codable, Hashable {
-  var userID: UUID
-  var token: String
-  var tokenExpiredDate: Date
-  var refreshToken: String
-  var refreshTokenExpiredDate: Date
-}
+  func updateEvent(id: UUID, _ request: CreateEventRequest) async throws -> Event {
+    try await send(.put, "events/\(id.uuidString)", token: token, body: encode(request))
+  }
 
-struct Event: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var title: String
+  func registerParticipant(eventID: UUID) async throws -> EventParticipant {
+    try await send(.post, "events/\(eventID.uuidString)/participants", token: token)
+  }
+
+  // MARK: Event Questions
+
+  func createQuestion(eventID: UUID, _ request: CreateEventQuestionRequest) async throws -> EventQuestion {
+    try await send(.post, "events/\(eventID.uuidString)/questions", token: token, body: encode(request))
+  }
+
+  func updateQuestion(
+    eventID: UUID,
+    questionID: UUID,
+    _ request: CreateEventQuestionRequest
+  ) async throws -> EventQuestion {
+    try await send(
+      .put,
+      "events/\(eventID.uuidString)/questions/\(questionID.uuidString)",
+      token: token,
+      body: encode(request)
+    )
+  }
+
+  // MARK: Correct Answers
+
+  func createCorrectAnswer(
+    eventID: UUID,
+    questionID: UUID,
+    _ request: CreateEventQuestionCorrectAnswerRequest
+  ) async throws -> EventQuestionCorrectAnswer {
+    try await send(
+      .post,
+      "events/\(eventID.uuidString)/questions/\(questionID.uuidString)/correct_answer",
+      token: token,
+      body: encode(request)
+    )
+  }
+
+  func updateCorrectAnswer(
+    eventID: UUID,
+    questionID: UUID,
+    _ request: CreateEventQuestionCorrectAnswerRequest
+  ) async throws -> EventQuestionCorrectAnswer {
+    try await send(
+      .put,
+      "events/\(eventID.uuidString)/questions/\(questionID.uuidString)/correct_answer",
+      token: token,
+      body: encode(request)
+    )
+  }
+
+  // MARK: Responses
+
+  func submitResponse(
+    eventID: UUID,
+    questionID: UUID,
+    _ request: CreateEventQuestionResponseRequest
+  ) async throws -> EventQuestionResponse {
+    try await send(
+      .post,
+      "events/\(eventID.uuidString)/questions/\(questionID.uuidString)/responses",
+      token: token,
+      body: encode(request)
+    )
+  }
+
+  func updateMyResponse(
+    eventID: UUID,
+    questionID: UUID,
+    _ request: CreateEventQuestionResponseRequest
+  ) async throws -> EventQuestionResponse {
+    try await send(
+      .put,
+      "events/\(eventID.uuidString)/questions/\(questionID.uuidString)/responses/me",
+      token: token,
+      body: encode(request)
+    )
+  }
+
+  // MARK: Wine Master Data
+
+  func wineStyles() async throws -> [WineStyle] {
+    try await send(.get, "wine/styles", token: token)
+  }
+
+  func wineVarieties() async throws -> [WineVariety] {
+    try await send(.get, "wine/varieties", token: token)
+  }
+
+  func wineRegionTypes() async throws -> [WineRegionType] {
+    try await send(.get, "wine/region_types", token: token)
+  }
+
+  func wineRegions() async throws -> [WineRegion] {
+    try await send(.get, "wine/regions", token: token)
+  }
 }
