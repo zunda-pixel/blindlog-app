@@ -11,3 +11,16 @@ struct AuthAPITests {
     print(user)
   }
 }
+
+@Suite
+struct APITests {
+  var authAPI = AuthAPI()
+  
+  @Test
+  func events() async throws {
+    let user = try await authAPI.guestAccount()
+    let api = API(token: user.token)
+    let events = try await api.events()
+    print(events)
+  }
+}
