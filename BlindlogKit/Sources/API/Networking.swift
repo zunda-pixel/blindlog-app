@@ -73,7 +73,7 @@ extension APIEndpoint {
     body: Data? = nil
   ) async throws -> Response {
     let data = try await execute(method, path, query: query, token: token, body: body)
-    return try JSONDecoder().decode(Response.self, from: data)
+    return try Self.jsonDecoder.decode(Response.self, from: data)
   }
 
   /// Sends a request and ignores the response body.
@@ -89,6 +89,21 @@ extension APIEndpoint {
 
   /// Encodes a value as a JSON request body.
   func encode<Body: Encodable>(_ value: Body) throws -> Data {
-    try JSONEncoder().encode(value)
+    try Self.jsonEncoder.encode(value)
+  }
+
+  /// The Blindlog API represents dates as Unix epoch seconds, so dates are
+  /// encoded and decoded with `.secondsSince1970` rather than the
+  /// `JSONCoder` default (seconds since the 2001 reference date).
+  static var jsonDecoder: JSONDecoder {
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .secondsSince1970
+    return decoder
+  }
+
+  static var jsonEncoder: JSONEncoder {
+    let encoder = JSONEncoder()
+    encoder.dateEncodingStrategy = .secondsSince1970
+    return encoder
   }
 }
