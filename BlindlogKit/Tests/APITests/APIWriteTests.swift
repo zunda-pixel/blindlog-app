@@ -43,6 +43,29 @@ struct APIWriteTests {
     )
   }
 
+  /// A public, published event whose registration and event periods span now,
+  /// so that participants can register and submit responses.
+  private func liveEventRequest() -> CreateEventRequest {
+    let now = Date()
+    return CreateEventRequest(
+      title: "Live Tasting",
+      body: "Created by automated tests.",
+      imageID: nil,
+      venueName: "Test Cellar",
+      venueAddress: PostalAddress(addressLine1: "1 Test St", countryCode: "JP"),
+      venueCoordinate: nil,
+      registrationPeriod: DateTimePeriod(startsAt: now.addingTimeInterval(-7200), endsAt: now.addingTimeInterval(7200)),
+      eventPeriod: DateTimePeriod(startsAt: now.addingTimeInterval(-3600), endsAt: now.addingTimeInterval(3600)),
+      answersPublishedAt: nil,
+      capacity: 10,
+      entryFee: Money(minorAmount: 0, currencyCode: "JPY"),
+      visibility: .public,
+      publishedAt: now.addingTimeInterval(-60),
+      canceledAt: nil,
+      regionScoreRules: nil
+    )
+  }
+
   @Test
   func createProfileAndFetchMe() async throws {
     let (api, token) = try await authenticatedAPI()
@@ -60,6 +83,15 @@ struct APIWriteTests {
     let response = try await api.createImageUploadURL()
     #expect(!response.imageID.isEmpty)
     #expect(!response.uploadURL.isEmpty)
+  }
+
+  @Test
+  func createEvent() async throws {
+    let (api, _) = try await organizerAPI()
+    let created = try await api.createEvent(sampleEventRequest())
+    #expect(created.title == "Integration Test Tasting")
+    #expect(created.visibility == .private)
+    #expect(created.capacity == 10)
   }
 
   @Test
@@ -106,6 +138,7 @@ struct APIWriteTests {
     )
     #expect(answer.eventQuestionID == question.id)
 
+    // `updateCorrectAnswer` returns a new revision with a fresh id.
     let updatedAnswer = try await api.updateCorrectAnswer(
       eventID: created.id,
       questionID: question.id,
@@ -116,34 +149,41 @@ struct APIWriteTests {
         wineVarietyIDs: []
       )
     )
-    #expect(updatedAnswer.id == answer.id)
+    #expect(updatedAnswer.eventQuestionID == question.id)
+    #expect(updatedAnswer.vintage == 2019)
+  }
 
-    // Submit + update the authenticated user's response.
-    let response = try await api.submitResponse(
-      eventID: created.id,
+  // Responses must be submitted by a registered participant who is NOT the
+  // organizer, against a published, currently-active event. So the organizer
+  // sets up the event/question and a separate participant responds.
+  @Test
+  func questionResponses() async throws {
+    let (organizer, _) = try await organizerAPI()
+    let event = try await organizer.createEvent(liveEventRequest())
+    let question = try await organizer.createQuestion(
+      eventID: event.id,
+      CreateEventQuestionRequest(questionNumber: 1, imageID: nil, note: nil)
+    )
+
+    let (participant, participantToken) = try await organizerAPI()
+    let registration = try await participant.registerParticipant(eventID: event.id)
+    #expect(registration.userID == participantToken.userID)
+
+    let response = try await participant.submitResponse(
+      eventID: event.id,
       questionID: question.id,
-      CreateEventQuestionResponseRequest(
-        wineRegionID: nil,
-        vintage: 2018,
-        alcoholByVolume: 13.0,
-        note: "Initial guess",
-        wineVarietyIDs: []
-      )
+      CreateEventQuestionResponseRequest(wineRegionID: nil, vintage: 2018, alcoholByVolume: 13.0, note: "Initial guess", wineVarietyIDs: [])
     )
     #expect(response.eventQuestionID == question.id)
+    #expect(response.userID == participantToken.userID)
 
-    let updatedResponse = try await api.updateMyResponse(
-      eventID: created.id,
+    let updatedResponse = try await participant.updateMyResponse(
+      eventID: event.id,
       questionID: question.id,
-      CreateEventQuestionResponseRequest(
-        wineRegionID: nil,
-        vintage: 2020,
-        alcoholByVolume: 14.0,
-        note: "Revised guess",
-        wineVarietyIDs: []
-      )
+      CreateEventQuestionResponseRequest(wineRegionID: nil, vintage: 2020, alcoholByVolume: 14.0, note: "Revised guess", wineVarietyIDs: [])
     )
     #expect(updatedResponse.eventQuestionID == question.id)
+    #expect(updatedResponse.vintage == 2020)
   }
 
   @Test
