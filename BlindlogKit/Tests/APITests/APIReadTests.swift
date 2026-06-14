@@ -1,9 +1,9 @@
 import Testing
 @testable import API
 
-/// Live, read-only integration tests against the Blindlog API, following the
-/// same pattern as `APITests`: create a guest account, then exercise
-/// authenticated GET endpoints that do not mutate server state.
+/// Live, read-only integration tests against the Blindlog API: create a guest
+/// account, then exercise authenticated GET endpoints that do not mutate
+/// server state.
 @Suite(.serialized)
 struct APIReadTests {
   var authAPI = AuthAPI()
@@ -11,6 +11,12 @@ struct APIReadTests {
   private func authenticatedAPI() async throws -> (api: API, token: UserToken) {
     let token = try await authAPI.guestAccount()
     return (API(token: token.token), token)
+  }
+
+  @Test
+  func guestAccount() async throws {
+    let user = try await authAPI.guestAccount()
+    #expect(!user.token.isEmpty)
   }
 
   @Test
@@ -31,6 +37,13 @@ struct APIReadTests {
     let (_, token) = try await authenticatedAPI()
     let users = try await authAPI.users(ids: [token.userID])
     #expect(users.contains { $0.id == token.userID })
+  }
+
+  @Test
+  func events() async throws {
+    let (api, _) = try await authenticatedAPI()
+    let events = try await api.events()
+    print("events: \(events.count)")
   }
 
   @Test
