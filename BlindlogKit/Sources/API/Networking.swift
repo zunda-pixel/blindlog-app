@@ -1,6 +1,7 @@
 import Foundation
 import HTTPClient
 import URLSessionHTTPClient
+import HTTPTypesFoundation
 
 /// An error thrown when the Blindlog API returns a non-successful status.
 enum AuthAPIError: Error {
