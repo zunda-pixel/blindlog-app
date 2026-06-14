@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* VinoGuesser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VinoGuesser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E2818712FDEBE4000AC9FFD /* VinoGuesserKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = VinoGuesserKit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -30,6 +31,7 @@
 		000000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				2E2818712FDEBE4000AC9FFD /* VinoGuesserKit */,
 				000000000000000000000010 /* VinoGuesser */,
 				000000000000000000000020 /* Products */,
 			);
