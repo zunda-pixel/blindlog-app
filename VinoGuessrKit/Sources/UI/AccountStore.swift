@@ -102,6 +102,16 @@ public final class AccountStore {
     return meta
   }
 
+  /// Updates the display name (and clears the guest flag) of the current
+  /// account, e.g. after a profile has been created.
+  public func setCurrentDisplayName(_ name: String) {
+    guard let id = currentAccountID,
+          let index = accounts.firstIndex(where: { $0.userID == id }) else { return }
+    accounts[index].displayName = name
+    accounts[index].isGuest = false
+    persist()
+  }
+
   public func switchTo(_ id: UUID) {
     guard accounts.contains(where: { $0.userID == id }),
           keychain.token(for: id) != nil else { return }

@@ -1,19 +1,112 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "A profile is required to organize events." : {
+
+    },
+    "Add" : {
+
+    },
     "Add Guest Account" : {
+
+    },
+    "Add Question" : {
+
+    },
+    "Address" : {
+
+    },
+    "Alcohol by volume (%)" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Capacity" : {
+
+    },
+    "Capacity (optional)" : {
+
+    },
+    "Correct Answer (optional)" : {
 
     },
     "Couldn’t Load Events" : {
 
     },
+    "Couldn’t load wine data" : {
+
+    },
+    "Country code" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create Event" : {
+
+    },
+    "Description" : {
+
+    },
+    "Details" : {
+
+    },
+    "Ends" : {
+
+    },
     "Events" : {
+
+    },
+    "Name" : {
+
+    },
+    "New Event" : {
+
+    },
+    "New Question" : {
 
     },
     "No Events" : {
 
     },
+    "No questions added yet." : {
+
+    },
+    "None" : {
+
+    },
+    "Note (optional)" : {
+
+    },
+    "Number" : {
+
+    },
+    "Options" : {
+
+    },
+    "Organizer Profile" : {
+
+    },
+    "Publish immediately" : {
+
+    },
+    "Question" : {
+
+    },
+    "Question %d" : {
+
+    },
+    "Questions" : {
+
+    },
+    "Region" : {
+
+    },
     "Retry" : {
+
+    },
+    "Schedule" : {
 
     },
     "Sign Out" : {
@@ -23,6 +116,30 @@
 
     },
     "Signing in…" : {
+
+    },
+    "Starts" : {
+
+    },
+    "Title" : {
+
+    },
+    "Varieties" : {
+
+    },
+    "Venue" : {
+
+    },
+    "Venue name" : {
+
+    },
+    "Vintage (year)" : {
+
+    },
+    "Visibility" : {
+
+    },
+    "Your name" : {
 
     }
   },

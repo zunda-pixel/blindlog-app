@@ -94,7 +94,7 @@ public struct EventRegionScoreRule: Sendable, Codable, Hashable {
   public var createdAt: Date
 }
 
-public enum EventVisibility: String, Sendable, Codable, Hashable {
+public enum EventVisibility: String, Sendable, Codable, Hashable, CaseIterable {
   case `public`
   case unlisted
   case `private`
@@ -115,23 +115,23 @@ enum EventParticipantStatus: String, Sendable, Codable, Hashable {
   case attended
 }
 
-struct EventQuestion: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var eventID: UUID
-  var questionNumber: Int32
-  var imageID: UUID?
-  var note: String?
-  var createdAt: Date
+public struct EventQuestion: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var eventID: UUID
+  public var questionNumber: Int32
+  public var imageID: UUID?
+  public var note: String?
+  public var createdAt: Date
 }
 
-struct EventQuestionCorrectAnswer: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var eventQuestionID: UUID
-  var wineRegionID: UUID?
-  var vintage: Int32?
-  var alcoholByVolume: Double?
-  var wineVarietyIDs: [UUID]
-  var createdAt: Date
+public struct EventQuestionCorrectAnswer: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var eventQuestionID: UUID
+  public var wineRegionID: UUID?
+  public var vintage: Int32?
+  public var alcoholByVolume: Double?
+  public var wineVarietyIDs: [UUID]
+  public var createdAt: Date
 }
 
 struct EventQuestionResponse: Sendable, Codable, Hashable, Identifiable {
@@ -154,10 +154,10 @@ struct WineStyle: Sendable, Codable, Hashable, Identifiable {
   var name: String
 }
 
-struct WineVariety: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var name: String
-  var wineStyleIDs: [UUID]
+public struct WineVariety: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var name: String
+  public var wineStyleIDs: [UUID]
 }
 
 struct WineRegionType: Sendable, Codable, Hashable, Identifiable {
@@ -166,34 +166,38 @@ struct WineRegionType: Sendable, Codable, Hashable, Identifiable {
   var name: String
 }
 
-struct WineRegion: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var parentRegionID: UUID?
-  var wineRegionTypeID: UUID
-  var name: String
+public struct WineRegion: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var parentRegionID: UUID?
+  public var wineRegionTypeID: UUID
+  public var name: String
 }
 
 // MARK: - Shared Value Types
 
+@MemberwiseInit(.public)
 public struct DateTimePeriod: Sendable, Codable, Hashable {
   public var startsAt: Date
   public var endsAt: Date
 }
 
+@MemberwiseInit(.public)
 public struct PostalAddress: Sendable, Codable, Hashable {
   public var addressLine1: String
-  public var addressLine2: String?
-  public var locality: String?
-  public var administrativeArea: String?
-  public var postalCode: String?
+  public var addressLine2: String? = nil
+  public var locality: String? = nil
+  public var administrativeArea: String? = nil
+  public var postalCode: String? = nil
   public var countryCode: String
 }
 
+@MemberwiseInit(.public)
 public struct GeoCoordinate: Sendable, Codable, Hashable {
   public var latitude: Double
   public var longitude: Double
 }
 
+@MemberwiseInit(.public)
 public struct Money: Sendable, Codable, Hashable {
   public var minorAmount: Int64
   public var currencyCode: String
@@ -241,40 +245,44 @@ public struct CreateImageRequest: Sendable, Codable, Hashable {
   public var imageID: String
 }
 
-struct CreateEventRequest: Sendable, Codable, Hashable {
-  var title: String
-  var body: String
-  var imageID: UUID?
-  var venueName: String
-  var venueAddress: PostalAddress
-  var venueCoordinate: GeoCoordinate?
-  var registrationPeriod: DateTimePeriod?
-  var eventPeriod: DateTimePeriod
-  var answersPublishedAt: Date?
-  var capacity: Int32?
-  var entryFee: Money?
-  var visibility: EventVisibility
-  var publishedAt: Date?
-  var canceledAt: Date?
-  var regionScoreRules: [CreateEventRegionScoreRuleRequest]?
+@MemberwiseInit(.public)
+public struct CreateEventRequest: Sendable, Codable, Hashable {
+  public var title: String
+  public var body: String
+  public var imageID: UUID? = nil
+  public var venueName: String
+  public var venueAddress: PostalAddress
+  public var venueCoordinate: GeoCoordinate? = nil
+  public var registrationPeriod: DateTimePeriod? = nil
+  public var eventPeriod: DateTimePeriod
+  public var answersPublishedAt: Date? = nil
+  public var capacity: Int32? = nil
+  public var entryFee: Money? = nil
+  public var visibility: EventVisibility
+  public var publishedAt: Date? = nil
+  public var canceledAt: Date? = nil
+  public var regionScoreRules: [CreateEventRegionScoreRuleRequest]? = nil
 }
 
-struct CreateEventRegionScoreRuleRequest: Sendable, Codable, Hashable {
-  var wineRegionTypeID: UUID
-  var points: Int32
+@MemberwiseInit(.public)
+public struct CreateEventRegionScoreRuleRequest: Sendable, Codable, Hashable {
+  public var wineRegionTypeID: UUID
+  public var points: Int32
 }
 
-struct CreateEventQuestionRequest: Sendable, Codable, Hashable {
-  var questionNumber: Int32
-  var imageID: UUID?
-  var note: String?
+@MemberwiseInit(.public)
+public struct CreateEventQuestionRequest: Sendable, Codable, Hashable {
+  public var questionNumber: Int32
+  public var imageID: UUID? = nil
+  public var note: String? = nil
 }
 
-struct CreateEventQuestionCorrectAnswerRequest: Sendable, Codable, Hashable {
-  var wineRegionID: UUID?
-  var vintage: Int32?
-  var alcoholByVolume: Double?
-  var wineVarietyIDs: [UUID]
+@MemberwiseInit(.public)
+public struct CreateEventQuestionCorrectAnswerRequest: Sendable, Codable, Hashable {
+  public var wineRegionID: UUID? = nil
+  public var vintage: Int32? = nil
+  public var alcoholByVolume: Double? = nil
+  public var wineVarietyIDs: [UUID] = []
 }
 
 struct CreateEventQuestionResponseRequest: Sendable, Codable, Hashable {

@@ -5,7 +5,7 @@ import MemberwiseInit
 
 /// Endpoints that require an authenticated user, identified by a bearer token.
 @MemberwiseInit(.public)
-public struct API: APIEndpoint {
+public struct API: APIEndpoint, Sendable {
   public var baseURL: URL = URL(string: "https://api.blindlog.me")!
   public var httpClient: URLSession = .shared
   public var token: String
@@ -70,11 +70,11 @@ public struct API: APIEndpoint {
     try await send(.get, "events", token: token)
   }
 
-  func createEvent(_ request: CreateEventRequest) async throws -> Event {
+  public func createEvent(_ request: CreateEventRequest) async throws -> Event {
     try await send(.post, "events", token: token, body: encode(request))
   }
 
-  func event(id: UUID) async throws -> Event {
+  public func event(id: UUID) async throws -> Event {
     try await send(.get, "events/\(id.uuidString)", token: token)
   }
 
@@ -88,7 +88,7 @@ public struct API: APIEndpoint {
 
   // MARK: Event Questions
 
-  func createQuestion(eventID: UUID, _ request: CreateEventQuestionRequest) async throws -> EventQuestion {
+  public func createQuestion(eventID: UUID, _ request: CreateEventQuestionRequest) async throws -> EventQuestion {
     try await send(.post, "events/\(eventID.uuidString)/questions", token: token, body: encode(request))
   }
 
@@ -107,7 +107,7 @@ public struct API: APIEndpoint {
 
   // MARK: Correct Answers
 
-  func createCorrectAnswer(
+  public func createCorrectAnswer(
     eventID: UUID,
     questionID: UUID,
     _ request: CreateEventQuestionCorrectAnswerRequest
@@ -167,7 +167,7 @@ public struct API: APIEndpoint {
     try await send(.get, "wine/styles", token: token)
   }
 
-  func wineVarieties() async throws -> [WineVariety] {
+  public func wineVarieties() async throws -> [WineVariety] {
     try await send(.get, "wine/varieties", token: token)
   }
 
@@ -175,7 +175,7 @@ public struct API: APIEndpoint {
     try await send(.get, "wine/region_types", token: token)
   }
 
-  func wineRegions() async throws -> [WineRegion] {
+  public func wineRegions() async throws -> [WineRegion] {
     try await send(.get, "wine/regions", token: token)
   }
 }

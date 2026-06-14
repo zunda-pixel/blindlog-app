@@ -1,15 +1,17 @@
 import SwiftUI
+import API
 
 /// The app's root view. Owns the `AccountStore`, ensures a session exists on
 /// launch (creating a guest account when necessary), and then shows the event
 /// list with an account switcher in the toolbar.
 public struct RootView: View {
   @State private var store = AccountStore()
+  @State private var path: [Event] = []
 
   public init() {}
 
   public var body: some View {
-    NavigationStack {
+    NavigationStack(path: $path) {
       content
     }
     .environment(store)
@@ -32,7 +34,7 @@ public struct RootView: View {
         }
       }
     case .ready:
-      EventListView()
+      EventListView(path: $path)
         .toolbar { AccountSwitcherToolbar() }
     }
   }

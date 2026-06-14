@@ -6,7 +6,7 @@ import MemberwiseInit
 /// Endpoints that do not require an authenticated user (token lifecycle,
 /// passkey/email challenges, public user lookup, and system documents).
 @MemberwiseInit(.public)
-public struct AuthAPI: APIEndpoint {
+public struct AuthAPI: APIEndpoint, Sendable {
   public var baseURL: URL = URL(string: "https://api.blindlog.me")!
   public var httpClient: URLSession = .shared
 
