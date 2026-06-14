@@ -18,11 +18,12 @@ struct User: Sendable, Codable, Hashable, Identifiable {
 // MARK: - User Profile
 
 struct UserProfile: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
   var userID: UUID
   var name: String
   var imageURL: URL?
   var createdAt: Date
+
+  var id: UUID { userID }
 }
 
 struct Me: Sendable, Codable, Hashable {
