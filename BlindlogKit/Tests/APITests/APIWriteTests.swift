@@ -138,7 +138,7 @@ struct APIWriteTests {
     )
     #expect(answer.eventQuestionID == question.id)
 
-    // `updateCorrectAnswer` returns a new revision with a fresh id.
+    // Updating the correct answer keeps the same stable id.
     let updatedAnswer = try await api.updateCorrectAnswer(
       eventID: created.id,
       questionID: question.id,
@@ -149,6 +149,7 @@ struct APIWriteTests {
         wineVarietyIDs: []
       )
     )
+    #expect(updatedAnswer.id == answer.id)
     #expect(updatedAnswer.eventQuestionID == question.id)
     #expect(updatedAnswer.vintage == 2019)
   }
