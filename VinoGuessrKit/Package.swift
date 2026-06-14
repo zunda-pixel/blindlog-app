@@ -3,14 +3,14 @@
 import PackageDescription
 
 let package = Package(
-  name: "VinoGuesserKit",
+  name: "VinoGuessrKit",
   defaultLocalization: "en",
   platforms: [
     .macOS(.v27),
   ],
   products: [
     .library(
-      name: "VinoGuesserKit",
+      name: "VinoGuessrKit",
       targets: ["UI"]
     ),
   ],
