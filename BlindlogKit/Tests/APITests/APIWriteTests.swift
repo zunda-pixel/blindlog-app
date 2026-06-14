@@ -138,7 +138,6 @@ struct APIWriteTests {
     )
     #expect(answer.eventQuestionID == question.id)
 
-    // Updating the correct answer keeps the same stable id.
     let updatedAnswer = try await api.updateCorrectAnswer(
       eventID: created.id,
       questionID: question.id,
