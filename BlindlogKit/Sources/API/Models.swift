@@ -1,59 +1,68 @@
-import Foundation
+public import Foundation
+import MemberwiseInit
 
 // MARK: - Authentication
 
-struct UserToken: Sendable, Codable, Hashable {
-  var userID: UUID
-  var token: String
-  var tokenExpiredDate: Date
-  var refreshToken: String
-  var refreshTokenExpiredDate: Date
+@MemberwiseInit(.public)
+public struct UserToken: Sendable, Codable, Hashable {
+  public var userID: UUID
+  public var token: String
+  public var tokenExpiredDate: Date
+  public var refreshToken: String
+  public var refreshTokenExpiredDate: Date
 }
 
-struct User: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var email: String?
+@MemberwiseInit(.public)
+public struct User: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var email: String? = nil
 }
 
 // MARK: - User Profile
 
-struct UserProfile: Sendable, Codable, Hashable, Identifiable {
-  var userID: UUID
-  var name: String
-  var imageURL: URL?
-  var createdAt: Date
+@MemberwiseInit(.public)
+public struct UserProfile: Sendable, Codable, Hashable, Identifiable {
+  public var userID: UUID
+  public var name: String
+  public var imageURL: URL? = nil
+  public var createdAt: Date
 
-  var id: UUID { userID }
+  public var id: UUID { userID }
 }
 
-struct Me: Sendable, Codable, Hashable {
-  var userID: UUID
-  var userProfile: MeUserProfile?
-  var emails: [Email]
+@MemberwiseInit(.public)
+public struct Me: Sendable, Codable, Hashable {
+  public var userID: UUID
+  public var userProfile: MeUserProfile? = nil
+  public var emails: [Email]
 }
 
-struct MeUserProfile: Sendable, Codable, Hashable {
-  var name: String
-  var imageURL: URL?
-  var createdAt: Date
+@MemberwiseInit(.public)
+public struct MeUserProfile: Sendable, Codable, Hashable {
+  public var name: String
+  public var imageURL: URL? = nil
+  public var createdAt: Date
 }
 
-struct Email: Sendable, Codable, Hashable {
-  var email: String
-  var createdAt: Date
+@MemberwiseInit(.public)
+public struct Email: Sendable, Codable, Hashable {
+  public var email: String
+  public var createdAt: Date
 }
 
 // MARK: - Images
 
-struct Image: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var imageID: String
-  var createdAt: Date
+@MemberwiseInit(.public)
+public struct Image: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var imageID: String
+  public var createdAt: Date
 }
 
-struct CreateImageUploadURLResponse: Sendable, Codable, Hashable {
-  var imageID: String
-  var uploadURL: String
+@MemberwiseInit(.public)
+public struct CreateImageUploadURLResponse: Sendable, Codable, Hashable {
+  public var imageID: String
+  public var uploadURL: String
 }
 
 // MARK: - Events
@@ -221,13 +230,15 @@ struct RefreshTokenRequest: Sendable, Codable, Hashable {
   var refreshToken: String
 }
 
-struct CreateUserProfileRequest: Sendable, Codable, Hashable {
-  var name: String
-  var imageID: UUID?
+@MemberwiseInit(.public)
+public struct CreateUserProfileRequest: Sendable, Codable, Hashable {
+  public var name: String
+  public var imageID: UUID? = nil
 }
 
-struct CreateImageRequest: Sendable, Codable, Hashable {
-  var imageID: String
+@MemberwiseInit(.public)
+public struct CreateImageRequest: Sendable, Codable, Hashable {
+  public var imageID: String
 }
 
 struct CreateEventRequest: Sendable, Codable, Hashable {
@@ -276,42 +287,48 @@ struct CreateEventQuestionResponseRequest: Sendable, Codable, Hashable {
 
 // MARK: - Passkey / Email Authentication Payloads
 
-struct AddPasskey: Sendable, Codable, Hashable {
-  var id: String
-  var rawId: String
-  var type: String
-  var response: AuthenticatorAttestation
+@MemberwiseInit(.public)
+public struct AddPasskey: Sendable, Codable, Hashable {
+  public var id: String
+  public var rawId: String
+  public var type: String
+  public var response: AuthenticatorAttestation
 }
 
-struct AuthenticatorAttestation: Sendable, Codable, Hashable {
-  var clientDataJSON: String
-  var attestationObject: String
+@MemberwiseInit(.public)
+public struct AuthenticatorAttestation: Sendable, Codable, Hashable {
+  public var clientDataJSON: String
+  public var attestationObject: String
 }
 
-struct AuthenticatorAssertion: Sendable, Codable, Hashable {
-  var clientDataJSON: String
-  var authenticatorData: String
-  var signature: String
-  var userHandle: String?
-  var attestationObject: String?
+@MemberwiseInit(.public)
+public struct AuthenticatorAssertion: Sendable, Codable, Hashable {
+  public var clientDataJSON: String
+  public var authenticatorData: String
+  public var signature: String
+  public var userHandle: String? = nil
+  public var attestationObject: String? = nil
 }
 
-struct CreatePasskeyTokenRequest: Sendable, Codable, Hashable {
-  var challenge: String
-  var id: String
-  var rawId: String
-  var type: String
-  var authenticatorAttachment: String?
-  var response: AuthenticatorAssertion
+@MemberwiseInit(.public)
+public struct CreatePasskeyTokenRequest: Sendable, Codable, Hashable {
+  public var challenge: String
+  public var id: String
+  public var rawId: String
+  public var type: String
+  public var authenticatorAttachment: String? = nil
+  public var response: AuthenticatorAssertion
 }
 
-struct CreateEmailTokenRequest: Sendable, Codable, Hashable {
-  var challenge: String
-  var email: String
-  var otp: String
+@MemberwiseInit(.public)
+public struct CreateEmailTokenRequest: Sendable, Codable, Hashable {
+  public var challenge: String
+  public var email: String
+  public var otp: String
 }
 
-struct ConfirmEmailRequest: Sendable, Codable, Hashable {
-  var email: String
-  var otp: String
+@MemberwiseInit(.public)
+public struct ConfirmEmailRequest: Sendable, Codable, Hashable {
+  public var email: String
+  public var otp: String
 }

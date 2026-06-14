@@ -1,34 +1,36 @@
-import Foundation
+public import Foundation
 import HTTPClient
 import URLSessionHTTPClient
+import MemberwiseInit
 
 /// Endpoints that require an authenticated user, identified by a bearer token.
-struct API: APIEndpoint {
-  var baseURL = URL(string: "https://api.blindlog.me")!
-  var httpClient = URLSession.shared
-  var token: String
+@MemberwiseInit(.public)
+public struct API: APIEndpoint {
+  public var baseURL: URL = URL(string: "https://api.blindlog.me")!
+  public var httpClient: URLSession = .shared
+  public var token: String
 
   // MARK: Current User
 
-  func me() async throws -> Me {
+  public func me() async throws -> Me {
     try await send(.get, "me", token: token)
   }
 
-  func createProfile(_ request: CreateUserProfileRequest) async throws -> UserProfile {
+  public func createProfile(_ request: CreateUserProfileRequest) async throws -> UserProfile {
     try await send(.post, "me", token: token, body: encode(request))
   }
 
-  func startEmailVerification(email: String) async throws {
+  public func startEmailVerification(email: String) async throws {
     try await send(.post, "email/verify/start", query: [URLQueryItem(name: "email", value: email)], token: token)
   }
 
-  func confirmEmail(_ request: ConfirmEmailRequest) async throws {
+  public func confirmEmail(_ request: ConfirmEmailRequest) async throws {
     try await send(.post, "email/verify", token: token, body: encode(request))
   }
 
   // MARK: Passkey
 
-  func addPasskey(_ passkey: AddPasskey, challenge: String) async throws {
+  public func addPasskey(_ passkey: AddPasskey, challenge: String) async throws {
     try await send(
       .post,
       "passkey",
@@ -54,11 +56,11 @@ struct API: APIEndpoint {
 
   // MARK: Images
 
-  func createImageUploadURL() async throws -> CreateImageUploadURLResponse {
+  public func createImageUploadURL() async throws -> CreateImageUploadURLResponse {
     try await send(.post, "images/upload_url", token: token)
   }
 
-  func createImage(_ request: CreateImageRequest) async throws -> Image {
+  public func createImage(_ request: CreateImageRequest) async throws -> Image {
     try await send(.post, "images", token: token, body: encode(request))
   }
 
