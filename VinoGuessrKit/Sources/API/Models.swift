@@ -67,34 +67,34 @@ public struct CreateImageUploadURLResponse: Sendable, Codable, Hashable {
 
 // MARK: - Events
 
-struct Event: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var organizerUserID: UUID
-  var title: String
-  var body: String
-  var imageID: UUID?
-  var venueName: String
-  var venueAddress: PostalAddress
-  var venueCoordinate: GeoCoordinate?
-  var registrationPeriod: DateTimePeriod?
-  var eventPeriod: DateTimePeriod
-  var answersPublishedAt: Date?
-  var capacity: Int32?
-  var entryFee: Money?
-  var visibility: EventVisibility
-  var publishedAt: Date?
-  var canceledAt: Date?
-  var regionScoreRules: [EventRegionScoreRule]
-  var createdAt: Date
+public struct Event: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var organizerUserID: UUID
+  public var title: String
+  public var body: String
+  public var imageID: UUID?
+  public var venueName: String
+  public var venueAddress: PostalAddress
+  public var venueCoordinate: GeoCoordinate?
+  public var registrationPeriod: DateTimePeriod?
+  public var eventPeriod: DateTimePeriod
+  public var answersPublishedAt: Date?
+  public var capacity: Int32?
+  public var entryFee: Money?
+  public var visibility: EventVisibility
+  public var publishedAt: Date?
+  public var canceledAt: Date?
+  public var regionScoreRules: [EventRegionScoreRule]
+  public var createdAt: Date
 }
 
-struct EventRegionScoreRule: Sendable, Codable, Hashable {
-  var wineRegionTypeID: UUID
-  var points: Int32
-  var createdAt: Date
+public struct EventRegionScoreRule: Sendable, Codable, Hashable {
+  public var wineRegionTypeID: UUID
+  public var points: Int32
+  public var createdAt: Date
 }
 
-enum EventVisibility: String, Sendable, Codable, Hashable {
+public enum EventVisibility: String, Sendable, Codable, Hashable {
   case `public`
   case unlisted
   case `private`
@@ -175,28 +175,28 @@ struct WineRegion: Sendable, Codable, Hashable, Identifiable {
 
 // MARK: - Shared Value Types
 
-struct DateTimePeriod: Sendable, Codable, Hashable {
-  var startsAt: Date
-  var endsAt: Date
+public struct DateTimePeriod: Sendable, Codable, Hashable {
+  public var startsAt: Date
+  public var endsAt: Date
 }
 
-struct PostalAddress: Sendable, Codable, Hashable {
-  var addressLine1: String
-  var addressLine2: String?
-  var locality: String?
-  var administrativeArea: String?
-  var postalCode: String?
-  var countryCode: String
+public struct PostalAddress: Sendable, Codable, Hashable {
+  public var addressLine1: String
+  public var addressLine2: String?
+  public var locality: String?
+  public var administrativeArea: String?
+  public var postalCode: String?
+  public var countryCode: String
 }
 
-struct GeoCoordinate: Sendable, Codable, Hashable {
-  var latitude: Double
-  var longitude: Double
+public struct GeoCoordinate: Sendable, Codable, Hashable {
+  public var latitude: Double
+  public var longitude: Double
 }
 
-struct Money: Sendable, Codable, Hashable {
-  var minorAmount: Int64
-  var currencyCode: String
+public struct Money: Sendable, Codable, Hashable {
+  public var minorAmount: Int64
+  public var currencyCode: String
 }
 
 // MARK: - Apple App Site Association

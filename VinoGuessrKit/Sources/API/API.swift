@@ -66,7 +66,7 @@ public struct API: APIEndpoint {
 
   // MARK: Events
 
-  func events() async throws -> [Event] {
+  public func events() async throws -> [Event] {
     try await send(.get, "events", token: token)
   }
 
