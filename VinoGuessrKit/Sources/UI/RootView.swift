@@ -20,14 +20,14 @@ public struct RootView: View {
   private var content: some View {
     switch store.phase {
     case .loading:
-      ProgressView("サインイン中…")
+      ProgressView("Signing in…")
     case .failed(let message):
       ContentUnavailableView {
-        Label("サインインに失敗しました", systemImage: "exclamationmark.triangle")
+        Label("Sign-in failed", systemImage: "exclamationmark.triangle")
       } description: {
         Text(message)
       } actions: {
-        Button("再試行") {
+        Button("Retry") {
           Task { await store.bootstrap() }
         }
       }

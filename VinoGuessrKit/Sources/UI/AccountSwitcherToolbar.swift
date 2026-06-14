@@ -23,18 +23,18 @@ struct AccountSwitcherToolbar: ToolbarContent {
 
         Divider()
 
-        Button("ゲストを追加", systemImage: "plus") {
+        Button("Add Guest Account", systemImage: "plus") {
           Task { try? await store.addGuestAccount() }
         }
 
         if let current = store.currentAccountID {
-          Button("サインアウト", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
+          Button("Sign Out", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
             Task { await store.signOut(current) }
           }
         }
       } label: {
         Label(
-          store.currentAccount?.displayName ?? "アカウント",
+          store.currentAccount?.displayName ?? "Account",
           systemImage: "person.crop.circle"
         )
       }

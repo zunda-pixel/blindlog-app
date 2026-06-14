@@ -1,0 +1,30 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Add Guest Account" : {
+
+    },
+    "Couldn’t Load Events" : {
+
+    },
+    "Events" : {
+
+    },
+    "No Events" : {
+
+    },
+    "Retry" : {
+
+    },
+    "Sign Out" : {
+
+    },
+    "Sign-in failed" : {
+
+    },
+    "Signing in…" : {
+
+    }
+  },
+  "version" : "1.3"
+}

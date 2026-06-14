@@ -1,5 +1,8 @@
 import SwiftUI
+import OSLog
 import API
+
+private let logger = Logger(subsystem: "com.vinoguessr.app", category: "EventListView")
 
 /// Loads and displays the list of events for the current account. Reloads
 /// automatically when the active account changes.
@@ -22,14 +25,14 @@ struct EventListView: View {
       case .loading:
         ProgressView()
       case .empty:
-        ContentUnavailableView("イベントがありません", systemImage: "calendar")
+        ContentUnavailableView("No Events", systemImage: "calendar")
       case .failed(let message):
         ContentUnavailableView {
-          Label("イベントを読み込めませんでした", systemImage: "wifi.slash")
+          Label("Couldn’t Load Events", systemImage: "wifi.slash")
         } description: {
           Text(message)
         } actions: {
-          Button("再試行") {
+          Button("Retry") {
             Task { await load() }
           }
         }
@@ -48,7 +51,7 @@ struct EventListView: View {
         }
       }
     }
-    .navigationTitle("イベント")
+    .navigationTitle("Events")
     .task(id: store.currentAccountID) { await load() }
   }
 
@@ -59,8 +62,10 @@ struct EventListView: View {
       let result = try await api.events()
       events = result
       loadState = result.isEmpty ? .empty : .loaded
+      logger.info("Loaded \(result.count) event(s).")
     } catch {
       loadState = .failed(String(describing: error))
+      logger.error("Failed to load events: \(String(describing: error))")
     }
   }
 }

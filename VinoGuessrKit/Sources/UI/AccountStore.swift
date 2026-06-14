@@ -1,7 +1,10 @@
 import Foundation
 import Observation
+import OSLog
 import API
 import Defaults
+
+private let logger = Logger(subsystem: "com.vinoguessr.app", category: "AccountStore")
 
 /// Errors surfaced by `AccountStore` that the UI can present.
 public enum AccountError: Error, Sendable {
@@ -66,15 +69,19 @@ public final class AccountStore {
     }
 
     if currentAccountID == nil {
+      logger.info("No stored session; creating a guest account.")
       do {
         try await addGuestAccount()
       } catch {
-        phase = .failed("ゲストアカウントを作成できませんでした。")
-        print(error)
+        phase = .failed("Could not create a guest account.")
+        logger.error("Guest account creation failed: \(String(describing: error))")
         return
       }
+    } else {
+      logger.info("Restored existing session for account \(self.currentAccountID?.uuidString ?? "?").")
     }
     phase = .ready
+    logger.info("Bootstrap ready with \(self.accounts.count) account(s).")
   }
 
   // MARK: Account management
@@ -170,6 +177,6 @@ public final class AccountStore {
 
   private static func guestDisplayName(for userID: UUID) -> String {
     let suffix = userID.uuidString.prefix(4)
-    return "ゲスト (\(suffix))"
+    return "Guest (\(suffix))"
   }
 }
