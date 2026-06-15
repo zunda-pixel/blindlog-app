@@ -148,10 +148,10 @@ struct EventQuestionResponse: Sendable, Codable, Hashable, Identifiable {
 
 // MARK: - Wine Master Data
 
-struct WineStyle: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var code: String
-  var name: String
+public struct WineStyle: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var code: String
+  public var name: String
 }
 
 public struct WineVariety: Sendable, Codable, Hashable, Identifiable {

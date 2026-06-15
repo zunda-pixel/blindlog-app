@@ -163,7 +163,7 @@ public struct API: APIEndpoint, Sendable {
 
   // MARK: Wine Master Data
 
-  func wineStyles() async throws -> [WineStyle] {
+  public func wineStyles() async throws -> [WineStyle] {
     try await send(.get, "wine/styles", token: token)
   }
 

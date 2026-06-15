@@ -31,6 +31,7 @@ struct CreateQuestionView: View {
   // Wine master data
   @State private var regions: [WineRegion] = []
   @State private var varieties: [WineVariety] = []
+  @State private var styles: [WineStyle] = []
   @State private var catalogState: CatalogState = .loading
 
   @State private var isSubmitting = false
@@ -112,7 +113,7 @@ struct CreateQuestionView: View {
       }
 
       NavigationLink {
-        WineVarietyPickerView(varieties: varieties, selection: $selectedVarietyIDs)
+        WineVarietyPickerView(varieties: varieties, styles: styles, selection: $selectedVarietyIDs)
       } label: {
         LabeledContent("Varieties", value: selectedVarietiesSummary)
       }
@@ -155,8 +156,10 @@ struct CreateQuestionView: View {
       let api = try await store.authenticatedAPI()
       async let regionsResult = api.wineRegions()
       async let varietiesResult = api.wineVarieties()
+      async let stylesResult = api.wineStyles()
       regions = try await regionsResult
       varieties = try await varietiesResult
+      styles = try await stylesResult
       catalogState = .loaded
     } catch {
       catalogState = .failed
