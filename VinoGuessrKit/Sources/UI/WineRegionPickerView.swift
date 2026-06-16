@@ -1,24 +1,28 @@
 import SwiftUI
 import API
 
+/// One node of the region tree, built from the flat `WineRegion` list so it can
+/// drive `OutlineGroup`. `children` is `nil` for leaves so no disclosure
+/// triangle is shown.
+private struct RegionNode: Identifiable {
+  let region: WineRegion
+  var children: [RegionNode]?
+
+  var id: UUID { region.id }
+}
+
 /// A hierarchical, single-selection picker for choosing a wine region.
 ///
-/// Regions form a tree via `parentRegionID` (e.g. France › Bordeaux). Parent
-/// regions are shown as `DisclosureGroup`s that can be expanded to reveal their
-/// children; every region — parent or leaf — is itself selectable. A search
-/// field flattens the tree to matching regions. A "None" option clears the
-/// selection.
+/// Regions form a tree via `parentRegionID` (e.g. France › Bordeaux). The tree
+/// is rendered with `OutlineGroup`, which manages expansion itself; every
+/// region — parent or leaf — is selectable. A search field flattens the tree to
+/// matching regions, and a "None" option clears the selection.
 struct WineRegionPickerView: View {
   let regions: [WineRegion]
   @Binding var selection: UUID?
 
   @Environment(\.dismiss) private var dismiss
   @State private var query = ""
-  @State private var expanded: Set<UUID> = []
-
-  private var roots: [WineRegion] {
-    children(of: nil)
-  }
 
   private var trimmedQuery: String {
     query.trimmingCharacters(in: .whitespaces)
@@ -34,8 +38,8 @@ struct WineRegionPickerView: View {
       }
 
       if trimmedQuery.isEmpty {
-        ForEach(roots) { region in
-          node(region)
+        OutlineGroup(rootNodes, children: \.children) { node in
+          regionButton(node.region)
         }
       } else {
         ForEach(flatMatches) { region in
@@ -45,26 +49,6 @@ struct WineRegionPickerView: View {
     }
     .searchable(text: $query)
     .navigationTitle("Region")
-  }
-
-  // MARK: Hierarchy
-
-  // Returns `AnyView` because the function is recursive: an opaque `some View`
-  // cannot be defined in terms of itself.
-  @ContentBuilder
-  private func node(_ region: WineRegion) -> some View {
-    let kids = children(of: region.id)
-    if kids.isEmpty {
-      return regionButton(region)
-    } else {
-      return DisclosureGroup(isExpanded: expansionBinding(region.id)) {
-        ForEach(kids) { child in
-          node(child)
-        }
-      } label: {
-        regionButton(region)
-      }
-    }
   }
 
   private func regionButton(_ region: WineRegion) -> some View {
@@ -90,24 +74,24 @@ struct WineRegionPickerView: View {
 
   // MARK: Data
 
-  private func children(of parentID: UUID?) -> [WineRegion] {
+  /// Builds the region tree rooted at the top-level (parentless) regions.
+  private var rootNodes: [RegionNode] {
+    nodes(parentID: nil)
+  }
+
+  private func nodes(parentID: UUID?) -> [RegionNode] {
     regions
       .filter { $0.parentRegionID == parentID }
       .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+      .map { region in
+        let children = nodes(parentID: region.id)
+        return RegionNode(region: region, children: children.isEmpty ? nil : children)
+      }
   }
 
   private var flatMatches: [WineRegion] {
     regions
       .filter { $0.name.localizedCaseInsensitiveContains(trimmedQuery) }
       .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-  }
-
-  private func expansionBinding(_ id: UUID) -> Binding<Bool> {
-    Binding(
-      get: { expanded.contains(id) },
-      set: { isExpanded in
-        if isExpanded { expanded.insert(id) } else { expanded.remove(id) }
-      }
-    )
   }
 }
