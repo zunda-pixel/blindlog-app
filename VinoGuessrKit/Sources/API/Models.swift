@@ -62,7 +62,7 @@ public struct Image: Sendable, Codable, Hashable, Identifiable {
 @MemberwiseInit(.public)
 public struct CreateImageUploadURLResponse: Sendable, Codable, Hashable {
   public var imageID: String
-  public var uploadURL: String
+  public var uploadURL: URL
 }
 
 // MARK: - Events

@@ -133,7 +133,7 @@ public final class AccountStore {
     persist()
 
     if currentAccountID == nil {
-      try? await addGuestAccount()
+      _ = try? await addGuestAccount()
     }
   }
 

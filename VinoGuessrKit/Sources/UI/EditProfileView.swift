@@ -35,10 +35,10 @@ struct EditProfileView: View {
       .navigationTitle("Profile")
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
-          Button("Cancel") { dismiss() }
+          Button(role: .cancel) { dismiss() }
         }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Save") { Task { await save() } }
+          Button(role: .confirm) { Task { await save() } }
             .disabled(!isValid || phase == .saving)
         }
       }
@@ -57,9 +57,7 @@ struct EditProfileView: View {
       }
 
       Section("Image") {
-        PhotosPicker(selection: $pickedItem, matching: .images) {
-          Label(imageData == nil ? "Select Image" : "Change Image", systemImage: "photo")
-        }
+        PhotosPicker("Select Image", selection: $pickedItem, matching: .images)
         if let previewImage {
           previewImage
             .resizable()

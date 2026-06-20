@@ -4,7 +4,6 @@ import HTTPTypes
 import API
 
 enum ImageUploadError: Error {
-  case badURL
   case uploadFailed
 }
 
@@ -18,12 +17,11 @@ extension API {
   /// uploaded, the image is registered via `createImage(_:)`.
   func uploadImage(_ data: Data) async throws -> UUID {
     let upload = try await createImageUploadURL()
-    guard let url = URL(string: upload.uploadURL) else { throw ImageUploadError.badURL }
 
     let boundary = "Boundary-\(UUID().uuidString)"
     let body = Self.multipartBody(for: data, boundary: boundary)
 
-    var request = URLRequest(url: url)
+    var request = URLRequest(url: upload.uploadURL)
     request.httpMethod = "POST"
     request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
     let (_, response) = try await URLSession.shared.upload(for: request, from: body)

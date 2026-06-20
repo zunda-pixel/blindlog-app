@@ -60,10 +60,10 @@ struct CreateEventView: View {
       .navigationTitle("New Event")
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
-          Button("Cancel") { dismiss() }
+          Button(role: .cancel) { dismiss() }
         }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Create") {
+          Button(role: .confirm) {
             Task { await submit() }
           }
           .disabled(!isValid || phase == .submitting)
@@ -115,9 +115,7 @@ struct CreateEventView: View {
       }
 
       Section("Image") {
-        PhotosPicker(selection: $pickedItem, matching: .images) {
-          Label(imageData == nil ? "Select Image" : "Change Image", systemImage: "photo")
-        }
+        PhotosPicker("Select Image", selection: $pickedItem, matching: .images)
         if let imageData, let image = PlatformImage(data: imageData) {
           Image(image)
             .resizable()

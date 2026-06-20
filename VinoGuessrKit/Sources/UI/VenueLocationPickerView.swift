@@ -95,26 +95,22 @@ struct VenueLocationPickerView: View {
   }
 
   private static func makeResult(_ item: MKMapItem) -> VenueSearchResult {
-    let placemark = item.placemark
-    let streetLine = [placemark.subThoroughfare, placemark.thoroughfare]
-      .compactMap { $0 }
-      .joined(separator: " ")
+    let coordinate = item.location.coordinate
+    let shortAddress = item.address?.shortAddress
+    let fullAddress = item.address?.fullAddress
     let selection = VenueSelection(
       coordinate: GeoCoordinate(
-        latitude: placemark.coordinate.latitude,
-        longitude: placemark.coordinate.longitude
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude
       ),
       name: item.name,
-      addressLine1: streetLine.isEmpty ? item.name : streetLine,
-      countryCode: placemark.isoCountryCode,
-      locality: placemark.locality
+      addressLine1: shortAddress ?? fullAddress ?? item.name,
+      countryCode: nil,
+      locality: nil
     )
-    let subtitle = [placemark.locality, placemark.administrativeArea, placemark.country]
-      .compactMap { $0 }
-      .joined(separator: ", ")
     return VenueSearchResult(
-      title: item.name ?? streetLine,
-      subtitle: subtitle,
+      title: item.name ?? shortAddress ?? "Unknown",
+      subtitle: fullAddress ?? "",
       selection: selection
     )
   }
