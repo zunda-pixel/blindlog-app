@@ -1,5 +1,7 @@
 import SwiftUI
 import OSLog
+import CoreLocation
+import PhotosUI
 import API
 
 private let logger = Logger(subsystem: "com.vinoguessr.app", category: "CreateEventView")
@@ -25,11 +27,20 @@ struct CreateEventView: View {
   @State private var venueName = ""
   @State private var addressLine1 = ""
   @State private var countryCode = "JP"
+  @State private var coordinate: GeoCoordinate?
   @State private var startsAt = Date().addingTimeInterval(86_400)
   @State private var endsAt = Date().addingTimeInterval(86_400 + 7_200)
   @State private var visibility: EventVisibility = .public
   @State private var capacityText = ""
   @State private var publishImmediately = true
+
+  // Pricing
+  @State private var entryFeeText = ""
+  @State private var feeCurrencyCode = "JPY"
+
+  // Image
+  @State private var pickedItem: PhotosPickerItem?
+  @State private var imageData: Data?
 
   @State private var phase: Phase = .loading
   @State private var submitError: String?
@@ -60,6 +71,9 @@ struct CreateEventView: View {
       }
     }
     .task { await loadProfileState() }
+    .onChange(of: pickedItem) { _, item in
+      Task { await loadImage(item) }
+    }
   }
 
   private var form: some View {
@@ -83,11 +97,37 @@ struct CreateEventView: View {
         TextField("Venue name", text: $venueName)
         TextField("Address", text: $addressLine1)
         TextField("Country code", text: $countryCode)
+        NavigationLink {
+          VenueLocationPickerView(coordinate: $coordinate, onSelect: applySelection)
+        } label: {
+          LabeledContent("Location", value: coordinateSummary)
+        }
       }
 
       Section("Schedule") {
         DatePicker("Starts", selection: $startsAt)
         DatePicker("Ends", selection: $endsAt, in: startsAt...)
+      }
+
+      Section("Pricing") {
+        TextField("Entry fee (optional)", text: $entryFeeText)
+        TextField("Currency code", text: $feeCurrencyCode)
+      }
+
+      Section("Image") {
+        PhotosPicker(selection: $pickedItem, matching: .images) {
+          Label(imageData == nil ? "Select Image" : "Change Image", systemImage: "photo")
+        }
+        if let imageData, let image = PlatformImage(data: imageData) {
+          Image(image)
+            .resizable()
+            .scaledToFit()
+            .frame(maxHeight: 160)
+          Button("Remove Image", role: .destructive) {
+            self.imageData = nil
+            pickedItem = nil
+          }
+        }
       }
 
       Section("Options") {
@@ -110,6 +150,46 @@ struct CreateEventView: View {
     }
     .formStyle(.grouped)
     .disabled(phase == .submitting)
+  }
+
+  private var coordinateSummary: String {
+    guard let coordinate else { return "Not set" }
+    return String(format: "%.4f, %.4f", coordinate.latitude, coordinate.longitude)
+  }
+
+  /// Parses the entered fee into a `Money`, scaling to the currency's minor
+  /// units (e.g. 0 fraction digits for JPY, 2 for USD). Returns nil when blank.
+  private var entryFee: Money? {
+    let trimmed = entryFeeText.trimmingCharacters(in: .whitespaces)
+    guard !trimmed.isEmpty, let amount = Decimal(string: trimmed) else { return nil }
+    let code = feeCurrencyCode.trimmingCharacters(in: .whitespaces).uppercased()
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .currency
+    formatter.currencyCode = code
+    let digits = max(0, formatter.maximumFractionDigits)
+    let scaled = amount * pow(Decimal(10), digits)
+    let minor = NSDecimalNumber(decimal: scaled).int64Value
+    return Money(minorAmount: minor, currencyCode: code)
+  }
+
+  private func loadImage(_ item: PhotosPickerItem?) async {
+    guard let item else { imageData = nil; return }
+    imageData = try? await item.loadTransferable(type: Data.self)
+  }
+
+  /// Fills the address fields from a chosen search result, filling empty fields
+  /// and always updating the country code.
+  private func applySelection(_ selection: VenueSelection) {
+    if addressLine1.trimmingCharacters(in: .whitespaces).isEmpty,
+       let line = selection.addressLine1, !line.isEmpty {
+      addressLine1 = line
+    }
+    if let iso = selection.countryCode {
+      countryCode = iso
+    }
+    if venueName.trimmingCharacters(in: .whitespaces).isEmpty, let name = selection.name {
+      venueName = name
+    }
   }
 
   private var isValid: Bool {
@@ -156,16 +236,24 @@ struct CreateEventView: View {
         needsProfile = false
       }
 
+      var imageID: UUID?
+      if let imageData {
+        imageID = try await api.uploadImage(imageData)
+      }
+
       let request = CreateEventRequest(
         title: title.trimmingCharacters(in: .whitespaces),
         body: descriptionText.trimmingCharacters(in: .whitespaces),
+        imageID: imageID,
         venueName: venueName.trimmingCharacters(in: .whitespaces),
         venueAddress: PostalAddress(
           addressLine1: addressLine1.trimmingCharacters(in: .whitespaces),
           countryCode: countryCode.trimmingCharacters(in: .whitespaces).uppercased()
         ),
+        venueCoordinate: coordinate,
         eventPeriod: DateTimePeriod(startsAt: startsAt, endsAt: endsAt),
         capacity: Int32(capacityText.trimmingCharacters(in: .whitespaces)),
+        entryFee: entryFee,
         visibility: visibility,
         publishedAt: publishImmediately ? Date() : nil
       )
@@ -189,5 +277,21 @@ extension EventVisibility {
     case .unlisted: "Unlisted"
     case .private: "Private"
     }
+  }
+}
+
+#if os(macOS)
+typealias PlatformImage = NSImage
+#else
+typealias PlatformImage = UIImage
+#endif
+
+extension SwiftUI.Image {
+  init(_ image: PlatformImage) {
+    #if os(macOS)
+    self.init(nsImage: image)
+    #else
+    self.init(uiImage: image)
+    #endif
   }
 }

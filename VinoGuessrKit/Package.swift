@@ -20,6 +20,8 @@ let package = Package(
     .package(url: "https://github.com/square/Valet.git", from: "5.0.0"),
     .package(url: "https://github.com/sindresorhus/Defaults.git", from: "9.0.0"),
     .package(url: "https://github.com/gohanlon/swift-memberwise-init-macro.git", from: "0.6.0"),
+    .package(url: "https://github.com/vapor/multipart-kit.git", exact: "5.0.0-alpha.5"),
+    .package(url: "https://github.com/apple/swift-http-types.git", from: "1.0.0"),
   ],
   targets: [
     .target(
@@ -29,6 +31,8 @@ let package = Package(
         .product(name: "Valet", package: "Valet"),
         .product(name: "Defaults", package: "Defaults"),
         .product(name: "DefaultsMacros", package: "Defaults"),
+        .product(name: "MultipartKit", package: "multipart-kit"),
+        .product(name: "HTTPTypes", package: "swift-http-types"),
       ]
     ),
     .target(

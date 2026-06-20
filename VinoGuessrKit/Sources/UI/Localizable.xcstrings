@@ -28,6 +28,9 @@
     "Capacity (optional)" : {
 
     },
+    "Change Image" : {
+
+    },
     "Correct Answer (optional)" : {
 
     },
@@ -46,16 +49,34 @@
     "Create Event" : {
 
     },
+    "Currency code" : {
+
+    },
     "Description" : {
 
     },
     "Details" : {
 
     },
+    "Display name" : {
+
+    },
+    "Edit Profile" : {
+
+    },
     "Ends" : {
 
     },
+    "Entry fee (optional)" : {
+
+    },
     "Events" : {
+
+    },
+    "Image" : {
+
+    },
+    "Location" : {
 
     },
     "Name" : {
@@ -88,6 +109,12 @@
     "Organizer Profile" : {
 
     },
+    "Pricing" : {
+
+    },
+    "Profile" : {
+
+    },
     "Publish immediately" : {
 
     },
@@ -103,10 +130,22 @@
     "Region" : {
 
     },
+    "Remove Image" : {
+
+    },
     "Retry" : {
 
     },
+    "Save" : {
+
+    },
     "Schedule" : {
+
+    },
+    "Search for a place or address" : {
+
+    },
+    "Select Image" : {
 
     },
     "Sign Out" : {
@@ -128,6 +167,9 @@
 
     },
     "Venue" : {
+
+    },
+    "Venue Location" : {
 
     },
     "Venue name" : {

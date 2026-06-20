@@ -7,6 +7,7 @@ import API
 public struct RootView: View {
   @State private var store = AccountStore()
   @State private var path: [Event] = []
+  @State private var isEditingProfile = false
 
   public init() {}
 
@@ -35,7 +36,18 @@ public struct RootView: View {
       }
     case .ready:
       EventListView(path: $path)
-        .toolbar { AccountSwitcherToolbar() }
+        .toolbar {
+          AccountSwitcherToolbar()
+          ToolbarItem(placement: .primaryAction) {
+            Button("Edit Profile", systemImage: "person.text.rectangle") {
+              isEditingProfile = true
+            }
+          }
+        }
+        .sheet(isPresented: $isEditingProfile) {
+          EditProfileView()
+            .environment(store)
+        }
     }
   }
 }
