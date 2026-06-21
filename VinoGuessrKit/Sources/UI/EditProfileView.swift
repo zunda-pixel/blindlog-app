@@ -20,7 +20,15 @@ struct EditProfileView: View {
   @State private var phase: Phase = .loading
   @State private var errorMessage: String?
 
+  // Email management
+  @State private var emails: [Email] = []
+  @State private var newEmail = ""
+  @State private var otp = ""
+  @State private var emailStage: EmailStage = .idle
+  @State private var emailBusy = false
+
   private enum Phase: Equatable { case loading, editing, saving }
+  private enum EmailStage: Equatable { case idle, codeSent }
 
   var body: some View {
     NavigationStack {
@@ -73,6 +81,39 @@ struct EditProfileView: View {
         }
       }
 
+      Section("Emails") {
+        if emails.isEmpty {
+          Text("No emails.")
+            .foregroundStyle(.secondary)
+        } else {
+          ForEach(emails, id: \.email) { email in
+            Text(email.email)
+          }
+        }
+
+        switch emailStage {
+        case .idle:
+          TextField("Add email", text: $newEmail)
+          Button("Send Code") { Task { await sendCode() } }
+            .disabled(emailBusy || newEmail.trimmingCharacters(in: .whitespaces).isEmpty)
+        case .codeSent:
+          TextField("Verification code", text: $otp)
+          HStack {
+            Button("Verify") { Task { await verifyEmail() } }
+              .disabled(emailBusy || otp.trimmingCharacters(in: .whitespaces).isEmpty)
+            Spacer()
+            Button("Cancel", role: .cancel) {
+              emailStage = .idle
+              otp = ""
+            }
+          }
+        }
+
+        if emailBusy {
+          ProgressView()
+        }
+      }
+
       if let errorMessage {
         Section {
           Text(errorMessage)
@@ -95,6 +136,7 @@ struct EditProfileView: View {
       let me = try await api.me()
       name = me.userProfile?.name ?? ""
       existingImageURL = me.userProfile?.imageURL
+      emails = me.emails
     } catch {
       logger.error("Failed to load profile: \(String(describing: error))")
     }
@@ -109,6 +151,41 @@ struct EditProfileView: View {
     }
     imageData = try? await item.loadTransferable(type: Data.self)
     previewImage = try? await item.loadTransferable(type: SwiftUI.Image.self)
+  }
+
+  private func sendCode() async {
+    errorMessage = nil
+    emailBusy = true
+    defer { emailBusy = false }
+    do {
+      let api = try await store.authenticatedAPI()
+      try await api.startEmailVerification(email: newEmail.trimmingCharacters(in: .whitespaces))
+      emailStage = .codeSent
+    } catch {
+      errorMessage = String(describing: error)
+    }
+  }
+
+  private func verifyEmail() async {
+    errorMessage = nil
+    emailBusy = true
+    defer { emailBusy = false }
+    do {
+      let api = try await store.authenticatedAPI()
+      try await api.confirmEmail(
+        ConfirmEmailRequest(
+          email: newEmail.trimmingCharacters(in: .whitespaces),
+          otp: otp.trimmingCharacters(in: .whitespaces)
+        )
+      )
+      let me = try await api.me()
+      emails = me.emails
+      newEmail = ""
+      otp = ""
+      emailStage = .idle
+    } catch {
+      errorMessage = String(describing: error)
+    }
   }
 
   private func save() async {

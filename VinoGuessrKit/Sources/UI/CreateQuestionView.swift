@@ -15,8 +15,12 @@ struct CreateQuestionView: View {
   let eventID: UUID
   /// The number suggested for this question (typically the next in sequence).
   let suggestedNumber: Int32
-  /// Called with the created question after a successful submission.
-  var onCreated: (EventQuestion) -> Void
+  /// When set, the form edits this existing question (and its answer) instead
+  /// of creating a new one.
+  let editing: (question: EventQuestion, answer: CreateEventQuestionCorrectAnswerRequest?)?
+  /// Called with the saved question and the correct-answer request that was
+  /// submitted for it (nil when no answer fields were filled).
+  var onCreated: (EventQuestion, CreateEventQuestionCorrectAnswerRequest?) -> Void
 
   // Question
   @State private var numberText: String
@@ -42,12 +46,19 @@ struct CreateQuestionView: View {
   init(
     eventID: UUID,
     suggestedNumber: Int32,
-    onCreated: @escaping (EventQuestion) -> Void
+    editing: (question: EventQuestion, answer: CreateEventQuestionCorrectAnswerRequest?)? = nil,
+    onCreated: @escaping (EventQuestion, CreateEventQuestionCorrectAnswerRequest?) -> Void
   ) {
     self.eventID = eventID
     self.suggestedNumber = suggestedNumber
+    self.editing = editing
     self.onCreated = onCreated
-    _numberText = State(initialValue: String(suggestedNumber))
+    _numberText = State(initialValue: String(editing?.question.questionNumber ?? suggestedNumber))
+    _note = State(initialValue: editing?.question.note ?? "")
+    _selectedRegionID = State(initialValue: editing?.answer?.wineRegionID)
+    _selectedVarietyIDs = State(initialValue: Set(editing?.answer?.wineVarietyIDs ?? []))
+    _vintageText = State(initialValue: editing?.answer?.vintage.map { String($0) } ?? "")
+    _abvText = State(initialValue: editing?.answer?.alcoholByVolume.map { String($0) } ?? "")
   }
 
   var body: some View {
@@ -73,13 +84,13 @@ struct CreateQuestionView: View {
       }
       .formStyle(.grouped)
       .disabled(isSubmitting)
-      .navigationTitle("New Question")
+      .navigationTitle(editing == nil ? "New Question" : "Edit Question")
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
-          Button("Cancel") { dismiss() }
+          Button(role: .cancel) { dismiss() }
         }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Add") {
+          Button(editing == nil ? "Add" : "Save") {
             Task { await submit() }
           }
           .disabled(!isValid || isSubmitting)
@@ -174,15 +185,21 @@ struct CreateQuestionView: View {
     do {
       let api = try await store.authenticatedAPI()
       let trimmedNote = note.trimmingCharacters(in: .whitespaces)
-      let question = try await api.createQuestion(
-        eventID: eventID,
-        CreateEventQuestionRequest(
-          questionNumber: number,
-          note: trimmedNote.isEmpty ? nil : trimmedNote
-        )
+      let questionRequest = CreateEventQuestionRequest(
+        questionNumber: number,
+        note: trimmedNote.isEmpty ? nil : trimmedNote
       )
-      logger.info("Created question \(question.id.uuidString) for event \(eventID.uuidString).")
 
+      let question: EventQuestion
+      if let editing {
+        question = try await api.updateQuestion(eventID: eventID, questionID: editing.question.id, questionRequest)
+        logger.info("Updated question \(question.id.uuidString).")
+      } else {
+        question = try await api.createQuestion(eventID: eventID, questionRequest)
+        logger.info("Created question \(question.id.uuidString).")
+      }
+
+      var answerRequest: CreateEventQuestionCorrectAnswerRequest?
       if hasAnswerInput {
         let request = CreateEventQuestionCorrectAnswerRequest(
           wineRegionID: selectedRegionID,
@@ -190,15 +207,19 @@ struct CreateQuestionView: View {
           alcoholByVolume: Double(abvText.trimmingCharacters(in: .whitespaces)),
           wineVarietyIDs: Array(selectedVarietyIDs)
         )
-        _ = try await api.createCorrectAnswer(eventID: eventID, questionID: question.id, request)
-        logger.info("Created correct answer for question \(question.id.uuidString).")
+        if editing?.answer != nil {
+          _ = try await api.updateCorrectAnswer(eventID: eventID, questionID: question.id, request)
+        } else {
+          _ = try await api.createCorrectAnswer(eventID: eventID, questionID: question.id, request)
+        }
+        answerRequest = request
       }
 
-      onCreated(question)
+      onCreated(question, answerRequest ?? editing?.answer)
       dismiss()
     } catch {
       submitError = String(describing: error)
-      logger.error("Failed to create question/answer: \(String(describing: error))")
+      logger.error("Failed to save question/answer: \(String(describing: error))")
       isSubmitting = false
     }
   }

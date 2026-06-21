@@ -82,7 +82,7 @@ struct APIWriteTests {
     let (api, _) = try await authenticatedAPI()
     let response = try await api.createImageUploadURL()
     #expect(!response.imageID.isEmpty)
-    #expect(!response.uploadURL.isEmpty)
+    #expect(!response.uploadURL.absoluteString.isEmpty)
   }
 
   @Test

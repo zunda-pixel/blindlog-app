@@ -42,15 +42,15 @@ public struct API: APIEndpoint, Sendable {
 
   // MARK: Users
 
-  func userProfile(userID: UUID) async throws -> UserProfile {
+  public func userProfile(userID: UUID) async throws -> UserProfile {
     try await send(.get, "user_profile/\(userID.uuidString)", token: token)
   }
 
-  func organizedEvents(userID: UUID) async throws -> [Event] {
+  public func organizedEvents(userID: UUID) async throws -> [Event] {
     try await send(.get, "users/\(userID.uuidString)/organized_events", token: token)
   }
 
-  func participatingEvents(userID: UUID) async throws -> [Event] {
+  public func participatingEvents(userID: UUID) async throws -> [Event] {
     try await send(.get, "users/\(userID.uuidString)/participating_events", token: token)
   }
 
@@ -78,11 +78,11 @@ public struct API: APIEndpoint, Sendable {
     try await send(.get, "events/\(id.uuidString)", token: token)
   }
 
-  func updateEvent(id: UUID, _ request: CreateEventRequest) async throws -> Event {
+  public func updateEvent(id: UUID, _ request: CreateEventRequest) async throws -> Event {
     try await send(.put, "events/\(id.uuidString)", token: token, body: encode(request))
   }
 
-  func registerParticipant(eventID: UUID) async throws -> EventParticipant {
+  public func registerParticipant(eventID: UUID) async throws -> EventParticipant {
     try await send(.post, "events/\(eventID.uuidString)/participants", token: token)
   }
 
@@ -92,7 +92,7 @@ public struct API: APIEndpoint, Sendable {
     try await send(.post, "events/\(eventID.uuidString)/questions", token: token, body: encode(request))
   }
 
-  func updateQuestion(
+  public func updateQuestion(
     eventID: UUID,
     questionID: UUID,
     _ request: CreateEventQuestionRequest
@@ -120,7 +120,7 @@ public struct API: APIEndpoint, Sendable {
     )
   }
 
-  func updateCorrectAnswer(
+  public func updateCorrectAnswer(
     eventID: UUID,
     questionID: UUID,
     _ request: CreateEventQuestionCorrectAnswerRequest
@@ -171,7 +171,7 @@ public struct API: APIEndpoint, Sendable {
     try await send(.get, "wine/varieties", token: token)
   }
 
-  func wineRegionTypes() async throws -> [WineRegionType] {
+  public func wineRegionTypes() async throws -> [WineRegionType] {
     try await send(.get, "wine/region_types", token: token)
   }
 

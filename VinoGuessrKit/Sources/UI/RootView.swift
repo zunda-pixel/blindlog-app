@@ -6,17 +6,22 @@ import API
 /// list with an account switcher in the toolbar.
 public struct RootView: View {
   @State private var store = AccountStore()
+  @State private var errorState = ErrorState()
   @State private var path: [Event] = []
-  @State private var isEditingProfile = false
 
   public init() {}
 
   public var body: some View {
-    NavigationStack(path: $path) {
-      content
-    }
-    .environment(store)
-    .task { await store.bootstrap() }
+    @Bindable var errorState = errorState
+    content
+      .environment(store)
+      .environment(errorState)
+      .alert("Error", isPresented: $errorState.isPresenting) {
+        Button("OK", role: .cancel) {}
+      } message: {
+        Text(errorState.message ?? "")
+      }
+      .task { await store.bootstrap() }
   }
 
   @ViewBuilder
@@ -35,19 +40,23 @@ public struct RootView: View {
         }
       }
     case .ready:
-      EventListView(path: $path)
-        .toolbar {
-          AccountSwitcherToolbar()
-          ToolbarItem(placement: .primaryAction) {
-            Button("Edit Profile", systemImage: "person.text.rectangle") {
-              isEditingProfile = true
-            }
-          }
+      tabs
+    }
+  }
+
+  private var tabs: some View {
+    TabView {
+      Tab("Events", systemImage: "calendar") {
+        NavigationStack(path: $path) {
+          EventListView(path: $path)
         }
-        .sheet(isPresented: $isEditingProfile) {
-          EditProfileView()
-            .environment(store)
+      }
+
+      Tab("My Page", systemImage: "person.crop.circle") {
+        NavigationStack {
+          MyPageView()
         }
+      }
     }
   }
 }

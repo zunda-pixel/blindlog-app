@@ -46,16 +46,7 @@ struct EventListView: View {
       case .loaded:
         List(events) { event in
           NavigationLink(value: event) {
-            VStack(alignment: .leading, spacing: 4) {
-              Text(event.title)
-                .font(.headline)
-              Text(event.venueName)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-              Text(event.eventPeriod.startsAt, style: .date)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-            }
+            EventRow(event: event)
           }
         }
       }
@@ -82,7 +73,12 @@ struct EventListView: View {
   }
 
   private func load() async {
-    loadState = .loading
+    // Only show the full-screen spinner on the first load; subsequent reloads
+    // (e.g. returning from a detail screen) refresh silently so the existing
+    // list stays visible instead of flashing empty.
+    if events.isEmpty {
+      loadState = .loading
+    }
     do {
       let api = try await store.authenticatedAPI()
       let result = try await api.events()
@@ -90,7 +86,9 @@ struct EventListView: View {
       loadState = result.isEmpty ? .empty : .loaded
       logger.info("Loaded \(result.count) event(s).")
     } catch {
-      loadState = .failed(String(describing: error))
+      if events.isEmpty {
+        loadState = .failed(String(describing: error))
+      }
       logger.error("Failed to load events: \(String(describing: error))")
     }
   }

@@ -14,7 +14,9 @@ struct CreateEventView: View {
   @Environment(AccountStore.self) private var store
   @Environment(\.dismiss) private var dismiss
 
-  /// Called with the created event after a successful submission.
+  /// When set, the form edits this event (PUT) instead of creating a new one.
+  var editing: Event? = nil
+  /// Called with the created or updated event after a successful submission.
   var onCreated: (Event) -> Void
 
   // Profile
@@ -38,10 +40,16 @@ struct CreateEventView: View {
   @State private var entryFeeText = ""
   @State private var feeCurrencyCode = "JPY"
 
+  // Scoring (points per wine region type)
+  @State private var regionTypes: [WineRegionType] = []
+  @State private var points: [UUID: Int32] = [:]
+
   // Image
   @State private var pickedItem: PhotosPickerItem?
   @State private var imageData: Data?
+  @State private var existingImageID: UUID?
 
+  @State private var didPopulate = false
   @State private var phase: Phase = .loading
   @State private var submitError: String?
 
@@ -57,7 +65,7 @@ struct CreateEventView: View {
           form
         }
       }
-      .navigationTitle("New Event")
+      .navigationTitle(editing == nil ? "New Event" : "Edit Event")
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           Button(role: .cancel) { dismiss() }
@@ -112,6 +120,21 @@ struct CreateEventView: View {
       Section("Pricing") {
         TextField("Entry fee (optional)", text: $entryFeeText)
         TextField("Currency code", text: $feeCurrencyCode)
+      }
+
+      if !regionTypes.isEmpty {
+        Section("Scoring") {
+          Text("Points awarded per region type (0 = unused).")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          ForEach(regionTypes) { type in
+            LabeledContent(type.name) {
+              TextField("0", value: pointsBinding(for: type.id), format: .number)
+                .multilineTextAlignment(.trailing)
+                .frame(width: 80)
+            }
+          }
+        }
       }
 
       Section("Image") {
@@ -170,6 +193,22 @@ struct CreateEventView: View {
     return Money(minorAmount: minor, currencyCode: code)
   }
 
+  private func pointsBinding(for id: UUID) -> Binding<Int> {
+    Binding(
+      get: { Int(points[id] ?? 0) },
+      set: { points[id] = Int32($0) }
+    )
+  }
+
+  /// Region score rules for region types given a positive point value.
+  private var regionScoreRules: [CreateEventRegionScoreRuleRequest] {
+    regionTypes.compactMap { type in
+      let value = points[type.id] ?? 0
+      guard value > 0 else { return nil }
+      return CreateEventRegionScoreRuleRequest(wineRegionTypeID: type.id, points: value)
+    }
+  }
+
   private func loadImage(_ item: PhotosPickerItem?) async {
     guard let item else { imageData = nil; return }
     imageData = try? await item.loadTransferable(type: Data.self)
@@ -201,7 +240,39 @@ struct CreateEventView: View {
       && endsAt > startsAt
   }
 
+  /// Populates the form from an existing event when in edit mode (once).
+  private func populateFromEditingIfNeeded() {
+    guard let editing, !didPopulate else { return }
+    didPopulate = true
+    title = editing.title
+    descriptionText = editing.body
+    venueName = editing.venueName
+    addressLine1 = editing.venueAddress.addressLine1
+    countryCode = editing.venueAddress.countryCode
+    coordinate = editing.venueCoordinate
+    startsAt = editing.eventPeriod.startsAt
+    endsAt = editing.eventPeriod.endsAt
+    visibility = editing.visibility
+    capacityText = editing.capacity.map { String($0) } ?? ""
+    existingImageID = editing.imageID
+    publishImmediately = editing.publishedAt != nil
+    if let fee = editing.entryFee {
+      feeCurrencyCode = fee.currencyCode
+      let formatter = NumberFormatter()
+      formatter.numberStyle = .currency
+      formatter.currencyCode = fee.currencyCode
+      let digits = max(0, formatter.maximumFractionDigits)
+      let amount = Decimal(fee.minorAmount) / pow(Decimal(10), digits)
+      entryFeeText = NSDecimalNumber(decimal: amount).stringValue
+    }
+    for rule in editing.regionScoreRules {
+      points[rule.wineRegionTypeID] = rule.points
+    }
+  }
+
   private func loadProfileState() async {
+    populateFromEditingIfNeeded()
+    regionTypes = (try? await store.authenticatedAPI().wineRegionTypes()) ?? []
     do {
       let api = try await store.authenticatedAPI()
       let me = try await api.me()
@@ -234,7 +305,8 @@ struct CreateEventView: View {
         needsProfile = false
       }
 
-      var imageID: UUID?
+      // Upload a newly picked image; otherwise keep the existing one (edit mode).
+      var imageID: UUID? = existingImageID
       if let imageData {
         imageID = try await api.uploadImage(imageData)
       }
@@ -253,11 +325,18 @@ struct CreateEventView: View {
         capacity: Int32(capacityText.trimmingCharacters(in: .whitespaces)),
         entryFee: entryFee,
         visibility: visibility,
-        publishedAt: publishImmediately ? Date() : nil
+        publishedAt: publishImmediately ? Date() : nil,
+        regionScoreRules: regionScoreRules.isEmpty ? nil : regionScoreRules
       )
 
-      let event = try await api.createEvent(request)
-      logger.info("Created event \(event.id.uuidString).")
+      let event: Event
+      if let editing {
+        event = try await api.updateEvent(id: editing.id, request)
+        logger.info("Updated event \(event.id.uuidString).")
+      } else {
+        event = try await api.createEvent(request)
+        logger.info("Created event \(event.id.uuidString).")
+      }
       onCreated(event)
       dismiss()
     } catch {

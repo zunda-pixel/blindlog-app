@@ -100,15 +100,15 @@ public enum EventVisibility: String, Sendable, Codable, Hashable, CaseIterable {
   case `private`
 }
 
-struct EventParticipant: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var eventID: UUID
-  var userID: UUID
-  var status: EventParticipantStatus
-  var createdAt: Date
+public struct EventParticipant: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var eventID: UUID
+  public var userID: UUID
+  public var status: EventParticipantStatus
+  public var createdAt: Date
 }
 
-enum EventParticipantStatus: String, Sendable, Codable, Hashable {
+public enum EventParticipantStatus: String, Sendable, Codable, Hashable {
   case registered
   case waitlisted
   case canceled
@@ -160,10 +160,10 @@ public struct WineVariety: Sendable, Codable, Hashable, Identifiable {
   public var wineStyleIDs: [UUID]
 }
 
-struct WineRegionType: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var code: String
-  var name: String
+public struct WineRegionType: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var code: String
+  public var name: String
 }
 
 public struct WineRegion: Sendable, Codable, Hashable, Identifiable {

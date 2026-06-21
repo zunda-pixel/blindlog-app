@@ -4,6 +4,7 @@ import SwiftUI
 /// account, and signing out of the current one.
 struct AccountSwitcherToolbar: ToolbarContent {
   @Environment(AccountStore.self) private var store
+  @Environment(ErrorState.self) private var errorState
 
   var body: some ToolbarContent {
     ToolbarItem(placement: .primaryAction) {
@@ -24,7 +25,13 @@ struct AccountSwitcherToolbar: ToolbarContent {
         Divider()
 
         Button("Add Guest Account", systemImage: "plus") {
-          Task { try? await store.addGuestAccount() }
+          Task {
+            do {
+              try await store.addGuestAccount()
+            } catch {
+              errorState.report(error)
+            }
+          }
         }
 
         if let current = store.currentAccountID {

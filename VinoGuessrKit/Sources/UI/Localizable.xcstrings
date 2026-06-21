@@ -1,10 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "0" : {
+
+    },
     "A profile is required to organize events." : {
 
     },
     "Add" : {
+
+    },
+    "Add email" : {
 
     },
     "Add Guest Account" : {
@@ -40,9 +46,6 @@
     "Country code" : {
 
     },
-    "Create" : {
-
-    },
     "Create Event" : {
 
     },
@@ -58,7 +61,19 @@
     "Display name" : {
 
     },
+    "Edit" : {
+
+    },
+    "Edit Event" : {
+
+    },
     "Edit Profile" : {
+
+    },
+    "Edit Question" : {
+
+    },
+    "Emails" : {
 
     },
     "Ends" : {
@@ -67,13 +82,22 @@
     "Entry fee (optional)" : {
 
     },
+    "Error" : {
+
+    },
     "Events" : {
 
     },
     "Image" : {
 
     },
+    "Join Event" : {
+
+    },
     "Location" : {
+
+    },
+    "My Page" : {
 
     },
     "Name" : {
@@ -85,7 +109,16 @@
     "New Question" : {
 
     },
+    "No emails." : {
+
+    },
     "No Events" : {
+
+    },
+    "No events joined." : {
+
+    },
+    "No organized events." : {
 
     },
     "No questions added yet." : {
@@ -100,10 +133,25 @@
     "Number" : {
 
     },
+    "OK" : {
+
+    },
     "Options" : {
 
     },
+    "Organized" : {
+
+    },
+    "Organizer" : {
+
+    },
     "Organizer Profile" : {
+
+    },
+    "Participating" : {
+
+    },
+    "Points awarded per region type (0 = unused)." : {
 
     },
     "Pricing" : {
@@ -127,19 +175,31 @@
     "Region" : {
 
     },
+    "Registered" : {
+
+    },
     "Remove Image" : {
 
     },
     "Retry" : {
 
     },
+    "Save" : {
+
+    },
     "Schedule" : {
+
+    },
+    "Scoring" : {
 
     },
     "Search for a place or address" : {
 
     },
     "Select Image" : {
+
+    },
+    "Send Code" : {
 
     },
     "Sign Out" : {
@@ -167,6 +227,12 @@
 
     },
     "Venue name" : {
+
+    },
+    "Verification code" : {
+
+    },
+    "Verify" : {
 
     },
     "Vintage (year)" : {
