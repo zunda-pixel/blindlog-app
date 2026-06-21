@@ -1,10 +1,13 @@
 import SwiftUI
+import AuthenticationServices
+import API
 
 /// A toolbar menu for switching between accounts, adding another guest
-/// account, and signing out of the current one.
+/// account, signing in with a passkey, and signing out of the current one.
 struct AccountSwitcherToolbar: ToolbarContent {
   @Environment(AccountStore.self) private var store
   @Environment(ErrorState.self) private var errorState
+  @Environment(\.authorizationController) private var authorizationController
 
   var body: some ToolbarContent {
     ToolbarItem(placement: .primaryAction) {
@@ -34,6 +37,10 @@ struct AccountSwitcherToolbar: ToolbarContent {
           }
         }
 
+        Button("Sign in with Passkey", systemImage: "person.badge.key") {
+          Task { await signInWithPasskey() }
+        }
+
         if let current = store.currentAccountID {
           Button("Sign Out", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
             Task { await store.signOut(current) }
@@ -45,6 +52,21 @@ struct AccountSwitcherToolbar: ToolbarContent {
           systemImage: "person.crop.circle"
         )
       }
+    }
+  }
+
+  private func signInWithPasskey() async {
+    do {
+      let auth = AuthAPI()
+      let challenge = try await auth.createChallenge()
+      let request = try Passkey.assertionRequest(challenge: challenge)
+      let result = try await authorizationController.performRequest(request)
+      let tokenRequest = try Passkey.tokenRequest(from: result, challenge: challenge)
+      let token = try await auth.token(passkey: tokenRequest)
+      let me = try? await API(token: token.token).me()
+      try store.addAccount(token: token, displayName: me?.userProfile?.name ?? "Passkey Account")
+    } catch {
+      errorState.report(error)
     }
   }
 }

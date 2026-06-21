@@ -102,6 +102,21 @@ public final class AccountStore {
     return meta
   }
 
+  /// Stores a token obtained from an external sign-in (e.g. passkey) as an
+  /// account and makes it current. Updates the entry if the account already
+  /// exists.
+  public func addAccount(token: UserToken, displayName: String, isGuest: Bool = false) throws {
+    try keychain.save(token)
+    if let index = accounts.firstIndex(where: { $0.userID == token.userID }) {
+      accounts[index].displayName = displayName
+      accounts[index].isGuest = isGuest
+    } else {
+      accounts.append(AccountMetadata(userID: token.userID, displayName: displayName, isGuest: isGuest))
+    }
+    currentAccountID = token.userID
+    persist()
+  }
+
   /// Updates the display name (and clears the guest flag) of the current
   /// account, e.g. after a profile has been created.
   public func setCurrentDisplayName(_ name: String) {

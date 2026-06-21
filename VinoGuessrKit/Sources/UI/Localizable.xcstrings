@@ -16,6 +16,9 @@
     "Add Guest Account" : {
 
     },
+    "Add Passkey" : {
+
+    },
     "Add Question" : {
 
     },
@@ -151,6 +154,9 @@
     "Participating" : {
 
     },
+    "Passkey" : {
+
+    },
     "Points awarded per region type (0 = unused)." : {
 
     },
@@ -200,6 +206,9 @@
 
     },
     "Send Code" : {
+
+    },
+    "Sign in with Passkey" : {
 
     },
     "Sign Out" : {

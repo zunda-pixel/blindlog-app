@@ -1,6 +1,7 @@
 import SwiftUI
 import OSLog
 import PhotosUI
+import AuthenticationServices
 import API
 
 private let logger = Logger(subsystem: "com.vinoguessr.app", category: "EditProfileView")
@@ -10,6 +11,7 @@ private let logger = Logger(subsystem: "com.vinoguessr.app", category: "EditProf
 struct EditProfileView: View {
   @Environment(AccountStore.self) private var store
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.authorizationController) private var authorizationController
 
   @State private var name = ""
   @State private var existingImageURL: URL?
@@ -19,6 +21,9 @@ struct EditProfileView: View {
 
   @State private var phase: Phase = .loading
   @State private var errorMessage: String?
+
+  @State private var passkeyBusy = false
+  @State private var passkeyStatus: String?
 
   // Email management
   @State private var emails: [Email] = []
@@ -78,6 +83,18 @@ struct EditProfileView: View {
             ProgressView()
           }
           .frame(maxHeight: 160)
+        }
+      }
+
+      Section("Passkey") {
+        Button("Add Passkey") { Task { await addPasskey() } }
+          .disabled(passkeyBusy)
+        if passkeyBusy {
+          ProgressView()
+        } else if let passkeyStatus {
+          Text(passkeyStatus)
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
       }
 
@@ -151,6 +168,32 @@ struct EditProfileView: View {
     }
     imageData = try? await item.loadTransferable(type: Data.self)
     previewImage = try? await item.loadTransferable(type: SwiftUI.Image.self)
+  }
+
+  private func addPasskey() async {
+    errorMessage = nil
+    passkeyStatus = nil
+    guard let userID = store.currentAccountID else { return }
+    passkeyBusy = true
+    defer { passkeyBusy = false }
+    do {
+      let challenge = try await AuthAPI().createChallenge()
+      let trimmedName = name.trimmingCharacters(in: .whitespaces)
+      let request = try Passkey.registrationRequest(
+        challenge: challenge,
+        name: trimmedName.isEmpty ? "VinoGuessr" : trimmedName,
+        userID: userID
+      )
+      let result = try await authorizationController.performRequest(request)
+      let payload = try Passkey.addPasskey(from: result)
+      let api = try await store.authenticatedAPI()
+      try await api.addPasskey(payload, challenge: challenge)
+      passkeyStatus = "Passkey registered."
+      logger.info("Registered passkey for \(userID.uuidString).")
+    } catch {
+      errorMessage = String(describing: error)
+      logger.error("Failed to register passkey: \(String(describing: error))")
+    }
   }
 
   private func sendCode() async {

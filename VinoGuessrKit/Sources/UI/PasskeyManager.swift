@@ -1,80 +1,69 @@
+import SwiftUI
 import AuthenticationServices
 import API
-#if canImport(UIKit)
-import UIKit
-#elseif canImport(AppKit)
-import AppKit
-#endif
 
-/// Bridges AuthenticationServices passkey (WebAuthn) flows to async/await and
-/// the Blindlog API request models.
+/// Builds passkey (WebAuthn) requests and converts AuthenticationServices
+/// results into the Blindlog API request models.
+///
+/// The request is performed by SwiftUI's `@Environment(\.authorizationController)`
+/// (`AuthorizationController`), which presents the system UI itself — no
+/// delegate, presentation anchor, or `NSObject` bridging required.
 ///
 /// Requires the app to be associated with the relying-party domain via the
-/// `webcredentials:` Associated Domains entitlement, and that the server's
-/// apple-app-site-association lists this app. Otherwise the system rejects the
+/// `webcredentials:` Associated Domains entitlement, and the server's
+/// apple-app-site-association must list this app, or the system rejects the
 /// request at runtime.
-@MainActor
-final class PasskeyManager: NSObject {
-  enum PasskeyError: Error { case invalidChallenge, unexpectedCredential }
+enum Passkey {
+  static let relyingPartyID = "api.blindlog.me"
 
-  private let relyingPartyID = "api.blindlog.me"
-  private var continuation: CheckedContinuation<ASAuthorization, any Error>?
+  enum PasskeyError: Error { case invalidChallenge, unexpectedResult }
 
-  /// Registers a new passkey for the given user, returning the payload to send
-  /// to `addPasskey`.
-  func register(challenge: String, name: String, userID: UUID) async throws -> AddPasskey {
+  static func registrationRequest(challenge: String, name: String, userID: UUID) throws -> ASAuthorizationRequest {
     let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: relyingPartyID)
-    let request = provider.createCredentialRegistrationRequest(
-      challenge: try Self.decodeBase64URL(challenge),
+    return provider.createCredentialRegistrationRequest(
+      challenge: try decodeBase64URL(challenge),
       name: name,
       userID: withUnsafeBytes(of: userID.uuid) { Data($0) }
     )
-    let authorization = try await perform(request)
-    guard let registration = authorization.credential as? ASAuthorizationPlatformPublicKeyCredentialRegistration else {
-      throw PasskeyError.unexpectedCredential
+  }
+
+  static func assertionRequest(challenge: String) throws -> ASAuthorizationRequest {
+    let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: relyingPartyID)
+    return provider.createCredentialAssertionRequest(challenge: try decodeBase64URL(challenge))
+  }
+
+  static func addPasskey(from result: ASAuthorizationResult) throws -> AddPasskey {
+    guard case let .passkeyRegistration(registration) = result else {
+      throw PasskeyError.unexpectedResult
     }
     return AddPasskey(
-      id: Self.encodeBase64URL(registration.credentialID),
-      rawId: Self.encodeBase64URL(registration.credentialID),
+      id: encodeBase64URL(registration.credentialID),
+      rawId: encodeBase64URL(registration.credentialID),
       type: "public-key",
       response: AuthenticatorAttestation(
-        clientDataJSON: Self.encodeBase64URL(registration.rawClientDataJSON),
-        attestationObject: Self.encodeBase64URL(registration.rawAttestationObject ?? Data())
+        clientDataJSON: encodeBase64URL(registration.rawClientDataJSON),
+        attestationObject: encodeBase64URL(registration.rawAttestationObject ?? Data())
       )
     )
   }
 
-  /// Performs a passkey assertion, returning the payload to exchange for tokens.
-  func assert(challenge: String) async throws -> CreatePasskeyTokenRequest {
-    let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: relyingPartyID)
-    let request = provider.createCredentialAssertionRequest(challenge: try Self.decodeBase64URL(challenge))
-    let authorization = try await perform(request)
-    guard let assertion = authorization.credential as? ASAuthorizationPlatformPublicKeyCredentialAssertion else {
-      throw PasskeyError.unexpectedCredential
+  static func tokenRequest(from result: ASAuthorizationResult, challenge: String) throws -> CreatePasskeyTokenRequest {
+    guard case let .passkeyAssertion(assertion) = result else {
+      throw PasskeyError.unexpectedResult
     }
     return CreatePasskeyTokenRequest(
       challenge: challenge,
-      id: Self.encodeBase64URL(assertion.credentialID),
-      rawId: Self.encodeBase64URL(assertion.credentialID),
+      id: encodeBase64URL(assertion.credentialID),
+      rawId: encodeBase64URL(assertion.credentialID),
       type: "public-key",
       authenticatorAttachment: "platform",
       response: AuthenticatorAssertion(
-        clientDataJSON: Self.encodeBase64URL(assertion.rawClientDataJSON),
-        authenticatorData: Self.encodeBase64URL(assertion.rawAuthenticatorData),
-        signature: Self.encodeBase64URL(assertion.signature),
-        userHandle: Self.encodeBase64URL(assertion.userID)
+        clientDataJSON: encodeBase64URL(assertion.rawClientDataJSON),
+        authenticatorData: encodeBase64URL(assertion.rawAuthenticatorData),
+        signature: encodeBase64URL(assertion.signature),
+        userHandle: encodeBase64URL(assertion.userID)
       )
     )
-  }
-
-  private func perform(_ request: ASAuthorizationRequest) async throws -> ASAuthorization {
-    try await withCheckedThrowingContinuation { continuation in
-      self.continuation = continuation
-      let controller = ASAuthorizationController(authorizationRequests: [request])
-      controller.delegate = self
-      controller.presentationContextProvider = self
-      controller.performRequests()
-    }
   }
 
   // MARK: Base64URL
@@ -91,42 +80,5 @@ final class PasskeyManager: NSObject {
       .replacingOccurrences(of: "+", with: "-")
       .replacingOccurrences(of: "/", with: "_")
       .replacingOccurrences(of: "=", with: "")
-  }
-}
-
-extension PasskeyManager: ASAuthorizationControllerDelegate {
-  nonisolated func authorizationController(
-    controller: ASAuthorizationController,
-    didCompleteWithAuthorization authorization: ASAuthorization
-  ) {
-    Task { @MainActor in
-      continuation?.resume(returning: authorization)
-      continuation = nil
-    }
-  }
-
-  nonisolated func authorizationController(
-    controller: ASAuthorizationController,
-    didCompleteWithError error: any Error
-  ) {
-    Task { @MainActor in
-      continuation?.resume(throwing: error)
-      continuation = nil
-    }
-  }
-}
-
-extension PasskeyManager: ASAuthorizationControllerPresentationContextProviding {
-  nonisolated func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-    MainActor.assumeIsolated {
-      #if canImport(UIKit)
-      let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-      return scenes.flatMap(\.windows).first { $0.isKeyWindow } ?? ASPresentationAnchor()
-      #elseif canImport(AppKit)
-      return NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first ?? ASPresentationAnchor()
-      #else
-      return ASPresentationAnchor()
-      #endif
-    }
   }
 }
