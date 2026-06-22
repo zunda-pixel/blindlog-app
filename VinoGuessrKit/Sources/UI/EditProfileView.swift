@@ -56,7 +56,6 @@ struct EditProfileView: View {
         }
       }
     }
-    .frame(minWidth: 420, minHeight: 460)
     .task { await load() }
     .onChange(of: pickedItem) { _, item in
       Task { await loadImage(item) }
