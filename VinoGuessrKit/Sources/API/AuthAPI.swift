@@ -22,9 +22,8 @@ public struct AuthAPI: APIEndpoint, Sendable {
 
   // MARK: Authentication
 
-  /// Issues a Base64URL-encoded passkey challenge.
-  public func createChallenge() async throws -> String {
-    try await send(.post, "challenge")
+  public func createAuthenticationChallenge() async throws -> String {
+    try await send(.post, "challenge/authentication")
   }
 
   /// Creates an anonymous user and returns the initial tokens.

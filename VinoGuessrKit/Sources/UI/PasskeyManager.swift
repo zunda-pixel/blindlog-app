@@ -32,11 +32,12 @@ enum Passkey {
     return provider.createCredentialAssertionRequest(challenge: try decodeBase64URL(challenge))
   }
 
-  static func addPasskey(from result: ASAuthorizationResult) throws -> AddPasskey {
+  static func addPasskey(from result: ASAuthorizationResult, challenge: String) throws -> AddPasskey {
     guard case let .passkeyRegistration(registration) = result else {
       throw PasskeyError.unexpectedResult
     }
     return AddPasskey(
+      challenge: challenge,
       id: encodeBase64URL(registration.credentialID),
       rawId: encodeBase64URL(registration.credentialID),
       type: "public-key",

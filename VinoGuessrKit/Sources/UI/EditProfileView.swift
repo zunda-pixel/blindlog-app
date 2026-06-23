@@ -176,7 +176,8 @@ struct EditProfileView: View {
     passkeyBusy = true
     defer { passkeyBusy = false }
     do {
-      let challenge = try await AuthAPI().createChallenge()
+      let api = try await store.authenticatedAPI()
+      let challenge = try await api.createRegistrationChallenge()
       let trimmedName = name.trimmingCharacters(in: .whitespaces)
       let request = try Passkey.registrationRequest(
         challenge: challenge,
@@ -184,9 +185,8 @@ struct EditProfileView: View {
         userID: userID
       )
       let result = try await authorizationController.performRequest(request)
-      let payload = try Passkey.addPasskey(from: result)
-      let api = try await store.authenticatedAPI()
-      try await api.addPasskey(payload, challenge: challenge)
+      let payload = try Passkey.addPasskey(from: result, challenge: challenge)
+      try await api.addPasskey(payload)
       passkeyStatus = "Passkey registered."
       logger.info("Registered passkey for \(userID.uuidString).")
     } catch {

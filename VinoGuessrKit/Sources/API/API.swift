@@ -30,14 +30,12 @@ public struct API: APIEndpoint, Sendable {
 
   // MARK: Passkey
 
-  public func addPasskey(_ passkey: AddPasskey, challenge: String) async throws {
-    try await send(
-      .post,
-      "passkey",
-      query: [URLQueryItem(name: "challenge", value: challenge)],
-      token: token,
-      body: encode(passkey)
-    )
+  public func createRegistrationChallenge() async throws -> String {
+    try await send(.post, "challenge/registration", token: token)
+  }
+
+  public func addPasskey(_ passkey: AddPasskey) async throws {
+    try await send(.post, "passkey", token: token, body: encode(passkey))
   }
 
   // MARK: Users

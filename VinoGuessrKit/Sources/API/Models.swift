@@ -297,6 +297,7 @@ struct CreateEventQuestionResponseRequest: Sendable, Codable, Hashable {
 
 @MemberwiseInit(.public)
 public struct AddPasskey: Sendable, Codable, Hashable {
+  public var challenge: String
   public var id: String
   public var rawId: String
   public var type: String

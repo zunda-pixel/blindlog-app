@@ -58,7 +58,7 @@ struct AccountSwitcherToolbar: ToolbarContent {
   private func signInWithPasskey() async {
     do {
       let auth = AuthAPI()
-      let challenge = try await auth.createChallenge()
+      let challenge = try await auth.createAuthenticationChallenge()
       let request = try Passkey.assertionRequest(challenge: challenge)
       let result = try await authorizationController.performRequest(request)
       let tokenRequest = try Passkey.tokenRequest(from: result, challenge: challenge)

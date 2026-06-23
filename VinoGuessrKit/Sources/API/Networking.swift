@@ -3,11 +3,6 @@ import HTTPClient
 import URLSessionHTTPClient
 import HTTPTypesFoundation
 
-/// An error thrown when the Blindlog API returns a non-successful status.
-enum AuthAPIError: Error {
-  case unexpectedStatus(HTTPResponse.Status)
-}
-
 /// Shared transport behavior for the Blindlog API clients.
 ///
 /// Conforming types provide a `baseURL` and an `httpClient`; this extension
@@ -59,7 +54,8 @@ extension APIEndpoint {
     }
 
     guard response.status.kind == .successful else {
-      throw AuthAPIError.unexpectedStatus(response.status)
+      let body = String(decoding: data, as: UTF8.self)
+      throw AuthAPIError.unexpectedStatus(response.status, body: body)
     }
 
     return data

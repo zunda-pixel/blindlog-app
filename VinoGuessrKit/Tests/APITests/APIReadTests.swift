@@ -20,8 +20,8 @@ struct APIReadTests {
   }
 
   @Test
-  func createChallenge() async throws {
-    let challenge = try await authAPI.createChallenge()
+  func createAuthenticationChallenge() async throws {
+    let challenge = try await authAPI.createAuthenticationChallenge()
     #expect(!challenge.isEmpty)
   }
 
