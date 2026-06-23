@@ -1,11 +1,11 @@
 import SwiftUI
-import BlindLogUI
+import UI
 
 @main
-struct BlindLogApp: App {
+struct MainApp: App {
   var body: some Scene {
     WindowGroup {
-      ContentView()
+      RootView()
     }
   }
 }

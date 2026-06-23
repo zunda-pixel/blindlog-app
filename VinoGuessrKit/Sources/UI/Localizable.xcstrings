@@ -1,0 +1,258 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "0" : {
+
+    },
+    "A profile is required to organize events." : {
+
+    },
+    "Add" : {
+
+    },
+    "Add email" : {
+
+    },
+    "Add Guest Account" : {
+
+    },
+    "Add Passkey" : {
+
+    },
+    "Add Question" : {
+
+    },
+    "Address" : {
+
+    },
+    "Alcohol by volume (%)" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Capacity" : {
+
+    },
+    "Capacity (optional)" : {
+
+    },
+    "Correct Answer (optional)" : {
+
+    },
+    "Couldn’t Load Events" : {
+
+    },
+    "Couldn’t load wine data" : {
+
+    },
+    "Country code" : {
+
+    },
+    "Create Event" : {
+
+    },
+    "Currency code" : {
+
+    },
+    "Description" : {
+
+    },
+    "Details" : {
+
+    },
+    "Display name" : {
+
+    },
+    "Edit" : {
+
+    },
+    "Edit Event" : {
+
+    },
+    "Edit Profile" : {
+
+    },
+    "Edit Question" : {
+
+    },
+    "Emails" : {
+
+    },
+    "Ends" : {
+
+    },
+    "Entry fee (optional)" : {
+
+    },
+    "Error" : {
+
+    },
+    "Events" : {
+
+    },
+    "Image" : {
+
+    },
+    "Join Event" : {
+
+    },
+    "Location" : {
+
+    },
+    "My Page" : {
+
+    },
+    "Name" : {
+
+    },
+    "New Event" : {
+
+    },
+    "New Question" : {
+
+    },
+    "No emails." : {
+
+    },
+    "No Events" : {
+
+    },
+    "No events joined." : {
+
+    },
+    "No organized events." : {
+
+    },
+    "No questions added yet." : {
+
+    },
+    "None" : {
+
+    },
+    "Note (optional)" : {
+
+    },
+    "Number" : {
+
+    },
+    "OK" : {
+
+    },
+    "Options" : {
+
+    },
+    "Organized" : {
+
+    },
+    "Organizer" : {
+
+    },
+    "Organizer Profile" : {
+
+    },
+    "Participating" : {
+
+    },
+    "Passkey" : {
+
+    },
+    "Points awarded per region type (0 = unused)." : {
+
+    },
+    "Pricing" : {
+
+    },
+    "Profile" : {
+
+    },
+    "Publish immediately" : {
+
+    },
+    "Question" : {
+
+    },
+    "Question %d" : {
+
+    },
+    "Questions" : {
+
+    },
+    "Region" : {
+
+    },
+    "Registered" : {
+
+    },
+    "Remove Image" : {
+
+    },
+    "Retry" : {
+
+    },
+    "Save" : {
+
+    },
+    "Schedule" : {
+
+    },
+    "Scoring" : {
+
+    },
+    "Search for a place or address" : {
+
+    },
+    "Select Image" : {
+
+    },
+    "Send Code" : {
+
+    },
+    "Sign in with Passkey" : {
+
+    },
+    "Sign Out" : {
+
+    },
+    "Sign-in failed" : {
+
+    },
+    "Signing in…" : {
+
+    },
+    "Starts" : {
+
+    },
+    "Title" : {
+
+    },
+    "Varieties" : {
+
+    },
+    "Venue" : {
+
+    },
+    "Venue Location" : {
+
+    },
+    "Venue name" : {
+
+    },
+    "Verification code" : {
+
+    },
+    "Verify" : {
+
+    },
+    "Vintage (year)" : {
+
+    },
+    "Visibility" : {
+
+    },
+    "Your name" : {
+
+    }
+  },
+  "version" : "1.3"
+}
