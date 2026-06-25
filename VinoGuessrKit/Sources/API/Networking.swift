@@ -8,7 +8,8 @@ import HTTPTypesFoundation
 /// Conforming types provide a `baseURL` and an `httpClient`; this extension
 /// builds requests, sends them, and validates the response status, following
 /// the same conventions used throughout the package (default `JSONEncoder`
-/// and `JSONDecoder`, dates decoded as epoch values).
+/// and `JSONDecoder`, whose default date strategy is seconds since the 2001
+/// reference date — what the Blindlog API uses for its `number` date fields).
 protocol APIEndpoint {
   var baseURL: URL { get }
   var httpClient: URLSession { get }
