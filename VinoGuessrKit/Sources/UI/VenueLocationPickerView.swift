@@ -105,7 +105,9 @@ struct VenueLocationPickerView: View {
       ),
       name: item.name,
       addressLine1: shortAddress ?? fullAddress ?? item.name,
-      countryCode: nil,
+      // `countryCode` is the result's ISO 3166-1 alpha-2 code (e.g. "JP"),
+      // which the form uses to prefill the event's country code field.
+      countryCode: item.placemark.countryCode,
       locality: nil
     )
     return VenueSearchResult(
