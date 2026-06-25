@@ -165,8 +165,15 @@ struct EditProfileView: View {
       previewImage = nil
       return
     }
-    imageData = try? await item.loadTransferable(type: Data.self)
-    previewImage = try? await item.loadTransferable(type: SwiftUI.Image.self)
+    // Load the bytes once (they're what we upload) and derive the preview from
+    // them, rather than transferring the same item a second time as an Image.
+    let data = try? await item.loadTransferable(type: Data.self)
+    imageData = data
+    if let data, let platformImage = PlatformImage(data: data) {
+      previewImage = Image(platformImage)
+    } else {
+      previewImage = nil
+    }
   }
 
   private func addPasskey() async {
