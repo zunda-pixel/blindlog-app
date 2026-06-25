@@ -39,7 +39,7 @@ struct CreateEventView: View {
 
   // Pricing
   @State private var entryFeeAmount: Decimal?
-  @State private var feeCurrencyCode = "JPY"
+  @State private var feeCurrency: Currency = .jpy
 
   // Scoring (points per wine region type)
   @State private var regionTypes: [WineRegionType] = []
@@ -121,7 +121,12 @@ struct CreateEventView: View {
 
       Section("Pricing") {
         TextField("Entry fee (optional)", value: $entryFeeAmount, format: .number)
-        TextField("Currency code", text: $feeCurrencyCode)
+        Picker("Currency", selection: $feeCurrency) {
+          ForEach(Currency.allCases, id: \.self) { currency in
+            Text(currency.pickerLabel).tag(currency)
+          }
+        }
+        .pickerStyle(.navigationLink)
       }
 
       if !regionTypes.isEmpty {
@@ -191,15 +196,13 @@ struct CreateEventView: View {
   /// units (e.g. 0 fraction digits for JPY, 2 for USD). Returns nil when blank.
   private var entryFee: Money? {
     guard let amount = entryFeeAmount else { return nil }
-    let code = feeCurrencyCode.trimmingCharacters(in: .whitespaces).uppercased()
-    guard let currency = Currency(rawValue: code) else { return nil }
     let formatter = NumberFormatter()
     formatter.numberStyle = .currency
-    formatter.currencyCode = code
+    formatter.currencyCode = feeCurrency.rawValue
     let digits = max(0, formatter.maximumFractionDigits)
     let scaled = amount * pow(Decimal(10), digits)
     let minor = NSDecimalNumber(decimal: scaled).int64Value
-    return Money(minorAmount: minor, currencyCode: currency)
+    return Money(minorAmount: minor, currencyCode: feeCurrency)
   }
 
   private func pointsBinding(for id: UUID) -> Binding<Int> {
@@ -266,7 +269,7 @@ struct CreateEventView: View {
     existingImageID = editing.imageID
     publishImmediately = editing.publishedAt != nil
     if let fee = editing.entryFee {
-      feeCurrencyCode = fee.currencyCode.rawValue
+      feeCurrency = fee.currencyCode
       let formatter = NumberFormatter()
       formatter.numberStyle = .currency
       formatter.currencyCode = fee.currencyCode.rawValue
@@ -353,6 +356,17 @@ struct CreateEventView: View {
       logger.error("Failed to create event: \(String(describing: error))")
       phase = .editing
     }
+  }
+}
+
+extension Currency {
+  /// A human-readable picker row, e.g. "JPY — Japanese Yen", falling back to
+  /// just the code when the locale has no localized currency name.
+  var pickerLabel: String {
+    if let name = Locale.current.localizedString(forCurrencyCode: rawValue) {
+      return "\(rawValue) — \(name)"
+    }
+    return rawValue
   }
 }
 
