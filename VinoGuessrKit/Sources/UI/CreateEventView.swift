@@ -48,6 +48,7 @@ struct CreateEventView: View {
   @State private var pickedItem: PhotosPickerItem?
   @State private var imageData: Data?
   @State private var existingImageID: UUID?
+  @State private var removeExistingImage = false
 
   @State private var didPopulate = false
   @State private var phase: Phase = .loading
@@ -147,6 +148,13 @@ struct CreateEventView: View {
           Button("Remove Image", role: .destructive) {
             self.imageData = nil
             pickedItem = nil
+          }
+        } else if existingImageID != nil, !removeExistingImage {
+          // Edit mode: the event has an image but `Event` exposes no URL to
+          // preview it, so just offer to detach it (clears `imageID` on save).
+          LabeledContent("Current image", value: "Attached")
+          Button("Remove Image", role: .destructive) {
+            removeExistingImage = true
           }
         }
       }
@@ -305,8 +313,9 @@ struct CreateEventView: View {
         needsProfile = false
       }
 
-      // Upload a newly picked image; otherwise keep the existing one (edit mode).
-      var imageID: UUID? = existingImageID
+      // Upload a newly picked image; otherwise keep the existing one (edit
+      // mode), unless the organizer chose to detach it.
+      var imageID: UUID? = removeExistingImage ? nil : existingImageID
       if let imageData {
         imageID = try await api.uploadImage(imageData)
       }
