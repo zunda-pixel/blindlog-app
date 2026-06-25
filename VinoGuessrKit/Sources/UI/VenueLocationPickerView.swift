@@ -83,15 +83,10 @@ struct VenueLocationPickerView: View {
   }
 
   private static func search(_ query: String) async -> [VenueSearchResult] {
-    let request = MKLocalSearch.Request()
-    request.naturalLanguageQuery = query
+    let request = MKLocalSearch.Request(naturalLanguageQuery: query)
     let search = MKLocalSearch(request: request)
-    return await withCheckedContinuation { continuation in
-      search.start { response, _ in
-        let results = (response?.mapItems ?? []).map(makeResult)
-        continuation.resume(returning: results)
-      }
-    }
+    let response = try? await search.start()
+    return (response?.mapItems ?? []).map(makeResult)
   }
 
   private static func makeResult(_ item: MKMapItem) -> VenueSearchResult {
@@ -105,9 +100,7 @@ struct VenueLocationPickerView: View {
       ),
       name: item.name,
       addressLine1: shortAddress ?? fullAddress ?? item.name,
-      // `countryCode` is the result's ISO 3166-1 alpha-2 code (e.g. "JP"),
-      // which the form uses to prefill the event's country code field.
-      countryCode: item.placemark.countryCode,
+      countryCode: item.addressRepresentations?.region?.identifier,
       locality: nil
     )
     return VenueSearchResult(
