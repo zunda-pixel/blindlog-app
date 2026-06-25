@@ -12,11 +12,13 @@ struct TokenKeychain: Sendable {
   private let valet: Valet
 
   init() {
-    // `withExplicitlySet` is the macOS-recommended factory: the service
-    // identifier may be surfaced to the user in Keychain Access.
+    // Bearer tokens are device-specific secrets, so use the `…ThisDeviceOnly`
+    // accessibility: the items are excluded from encrypted backups and never
+    // migrate to a restored or new device. `.afterFirstUnlock` (vs `.whenUnlocked`)
+    // still allows reads while the device is locked, e.g. during background refresh.
     self.valet = Valet.valet(
       withExplicitlySet: Identifier(nonEmpty: "me.blindlog.vinoguessr.tokens")!,
-      accessibility: .afterFirstUnlock
+      accessibility: .afterFirstUnlockThisDeviceOnly
     )
   }
 
