@@ -36,6 +36,10 @@ public final class AccountStore {
   private let auth: AuthAPI
   private let now: @Sendable () -> Date
 
+  /// In-flight token refreshes, keyed by account, so concurrent callers share a
+  /// single refresh instead of each spending the refresh token.
+  private var refreshTasks: [UUID: Task<UserToken, Error>] = [:]
+
   /// - Parameters:
   ///   - auth: The unauthenticated API client. Injectable for testing.
   ///   - now: Clock used for token-expiry comparisons. Injectable for testing.
@@ -169,13 +173,25 @@ public final class AccountStore {
 
   // MARK: Private
 
+  /// Refreshes the access token, coalescing concurrent refreshes for the same
+  /// account. Without this, two callers that both observe an expired token
+  /// would each call `refreshToken`, and a server that rotates refresh tokens
+  /// would invalidate one of the two — breaking the session.
   private func refresh(_ token: UserToken, for id: UUID) async throws -> UserToken {
-    guard token.refreshTokenExpiredDate > now() else {
-      throw AccountError.sessionExpired(id)
+    if let existing = refreshTasks[id] {
+      return try await existing.value
     }
-    let fresh = try await auth.refreshToken(token.refreshToken)
-    try keychain.save(fresh)
-    return fresh
+    let task = Task { [auth, keychain, now] () async throws -> UserToken in
+      guard token.refreshTokenExpiredDate > now() else {
+        throw AccountError.sessionExpired(id)
+      }
+      let fresh = try await auth.refreshToken(token.refreshToken)
+      try keychain.save(fresh)
+      return fresh
+    }
+    refreshTasks[id] = task
+    defer { refreshTasks[id] = nil }
+    return try await task.value
   }
 
   /// Creates a guest token, retrying a couple of times since `POST /user` is
