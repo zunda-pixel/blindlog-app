@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import Currency
 @testable import API
 
 /// Offline tests that verify the model `Codable` mappings against the JSON
@@ -193,7 +194,7 @@ struct RequestEncodingTests {
       eventPeriod: DateTimePeriod(startsAt: Date(timeIntervalSince1970: 1), endsAt: Date(timeIntervalSince1970: 2)),
       answersPublishedAt: nil,
       capacity: 10,
-      entryFee: Money(minorAmount: 500, currencyCode: "JPY"),
+      entryFee: Money(minorAmount: 500, currencyCode: .jpy),
       visibility: .unlisted,
       publishedAt: nil,
       canceledAt: nil,

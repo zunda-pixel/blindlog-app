@@ -1,4 +1,5 @@
 public import Foundation
+public import Currency
 import MemberwiseInit
 
 // MARK: - Authentication
@@ -200,7 +201,7 @@ public struct GeoCoordinate: Sendable, Codable, Hashable {
 @MemberwiseInit(.public)
 public struct Money: Sendable, Codable, Hashable {
   public var minorAmount: Int64
-  public var currencyCode: String
+  public var currencyCode: Currency
 }
 
 // MARK: - Apple App Site Association

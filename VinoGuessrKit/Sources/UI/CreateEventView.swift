@@ -3,6 +3,7 @@ import OSLog
 import CoreLocation
 import PhotosUI
 import API
+import Currency
 
 private let logger = Logger(subsystem: "com.vinoguessr.app", category: "CreateEventView")
 
@@ -37,7 +38,7 @@ struct CreateEventView: View {
   @State private var publishImmediately = true
 
   // Pricing
-  @State private var entryFeeText = ""
+  @State private var entryFeeAmount: Decimal?
   @State private var feeCurrencyCode = "JPY"
 
   // Scoring (points per wine region type)
@@ -119,7 +120,7 @@ struct CreateEventView: View {
       }
 
       Section("Pricing") {
-        TextField("Entry fee (optional)", text: $entryFeeText)
+        TextField("Entry fee (optional)", value: $entryFeeAmount, format: .number)
         TextField("Currency code", text: $feeCurrencyCode)
       }
 
@@ -186,19 +187,19 @@ struct CreateEventView: View {
     return String(format: "%.4f, %.4f", coordinate.latitude, coordinate.longitude)
   }
 
-  /// Parses the entered fee into a `Money`, scaling to the currency's minor
+  /// Builds a `Money` from the entered fee, scaling to the currency's minor
   /// units (e.g. 0 fraction digits for JPY, 2 for USD). Returns nil when blank.
   private var entryFee: Money? {
-    let trimmed = entryFeeText.trimmingCharacters(in: .whitespaces)
-    guard !trimmed.isEmpty, let amount = Decimal(string: trimmed) else { return nil }
+    guard let amount = entryFeeAmount else { return nil }
     let code = feeCurrencyCode.trimmingCharacters(in: .whitespaces).uppercased()
+    guard let currency = Currency(rawValue: code) else { return nil }
     let formatter = NumberFormatter()
     formatter.numberStyle = .currency
     formatter.currencyCode = code
     let digits = max(0, formatter.maximumFractionDigits)
     let scaled = amount * pow(Decimal(10), digits)
     let minor = NSDecimalNumber(decimal: scaled).int64Value
-    return Money(minorAmount: minor, currencyCode: code)
+    return Money(minorAmount: minor, currencyCode: currency)
   }
 
   private func pointsBinding(for id: UUID) -> Binding<Int> {
@@ -265,13 +266,12 @@ struct CreateEventView: View {
     existingImageID = editing.imageID
     publishImmediately = editing.publishedAt != nil
     if let fee = editing.entryFee {
-      feeCurrencyCode = fee.currencyCode
+      feeCurrencyCode = fee.currencyCode.rawValue
       let formatter = NumberFormatter()
       formatter.numberStyle = .currency
-      formatter.currencyCode = fee.currencyCode
+      formatter.currencyCode = fee.currencyCode.rawValue
       let digits = max(0, formatter.maximumFractionDigits)
-      let amount = Decimal(fee.minorAmount) / pow(Decimal(10), digits)
-      entryFeeText = NSDecimalNumber(decimal: amount).stringValue
+      entryFeeAmount = Decimal(fee.minorAmount) / pow(Decimal(10), digits)
     }
     for rule in editing.regionScoreRules {
       points[rule.wineRegionTypeID] = rule.points

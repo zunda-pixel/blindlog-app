@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import Currency
 @testable import API
 
 /// Live integration tests that mutate server state (create profile, image
@@ -35,7 +36,7 @@ struct APIWriteTests {
       eventPeriod: DateTimePeriod(startsAt: now.addingTimeInterval(7200), endsAt: now.addingTimeInterval(10800)),
       answersPublishedAt: nil,
       capacity: 10,
-      entryFee: Money(minorAmount: 0, currencyCode: "JPY"),
+      entryFee: Money(minorAmount: 0, currencyCode: .jpy),
       visibility: .private,
       publishedAt: nil,
       canceledAt: nil,
@@ -58,7 +59,7 @@ struct APIWriteTests {
       eventPeriod: DateTimePeriod(startsAt: now.addingTimeInterval(-3600), endsAt: now.addingTimeInterval(3600)),
       answersPublishedAt: nil,
       capacity: 10,
-      entryFee: Money(minorAmount: 0, currencyCode: "JPY"),
+      entryFee: Money(minorAmount: 0, currencyCode: .jpy),
       visibility: .public,
       publishedAt: now.addingTimeInterval(-60),
       canceledAt: nil,
