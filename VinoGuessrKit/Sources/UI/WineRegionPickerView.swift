@@ -75,18 +75,25 @@ struct WineRegionPickerView: View {
   // MARK: Data
 
   /// Builds the region tree rooted at the top-level (parentless) regions.
+  ///
+  /// Children are grouped by parent once (O(n)) rather than re-scanning the
+  /// full list at every level, and a `visited` set guards against malformed
+  /// data that forms a parent/child cycle (which would otherwise recurse
+  /// forever).
   private var rootNodes: [RegionNode] {
-    nodes(parentID: nil)
-  }
+    let childrenByParent = Dictionary(grouping: regions, by: \.parentRegionID)
 
-  private func nodes(parentID: UUID?) -> [RegionNode] {
-    regions
-      .filter { $0.parentRegionID == parentID }
-      .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-      .map { region in
-        let children = nodes(parentID: region.id)
-        return RegionNode(region: region, children: children.isEmpty ? nil : children)
-      }
+    func build(parentID: UUID?, visited: Set<UUID>) -> [RegionNode] {
+      (childrenByParent[parentID] ?? [])
+        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        .compactMap { region in
+          guard !visited.contains(region.id) else { return nil }
+          let children = build(parentID: region.id, visited: visited.union([region.id]))
+          return RegionNode(region: region, children: children.isEmpty ? nil : children)
+        }
+    }
+
+    return build(parentID: nil, visited: [])
   }
 
   private var flatMatches: [WineRegion] {
