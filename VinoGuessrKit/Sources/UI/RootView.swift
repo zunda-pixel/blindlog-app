@@ -7,7 +7,10 @@ import API
 public struct RootView: View {
   @State private var store = AccountStore()
   @State private var errorState = ErrorState()
-  @State private var path: [Event] = []
+  @State private var eventListRouter = Router()
+  @State private var mypageRouter = Router()
+  @State private var eventListDraft = WineAnswerDraft()
+  @State private var mypageDraft = WineAnswerDraft()
 
   public init() {}
 
@@ -47,15 +50,21 @@ public struct RootView: View {
   private var tabs: some View {
     TabView {
       Tab("Events", systemImage: "calendar") {
-        NavigationStack(path: $path) {
-          EventListView(path: $path)
+        NavigationStack(path: $eventListRouter.items) {
+          EventListView()
+            .routerDestinations()
         }
+        .environment(eventListRouter)
+        .environment(eventListDraft)
       }
 
       Tab("My Page", systemImage: "person.crop.circle") {
-        NavigationStack {
+        NavigationStack(path: $mypageRouter.items) {
           MyPageView()
+            .routerDestinations()
         }
+        .environment(mypageRouter)
+        .environment(mypageDraft)
       }
     }
   }

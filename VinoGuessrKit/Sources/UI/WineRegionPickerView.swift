@@ -16,13 +16,15 @@ private struct RegionNode: Identifiable {
 /// Regions form a tree via `parentRegionID` (e.g. France › Bordeaux). The tree
 /// is rendered with `OutlineGroup`, which manages expansion itself; every
 /// region — parent or leaf — is selectable. A search field flattens the tree to
-/// matching regions, and a "None" option clears the selection.
+/// matching regions, and a "None" option clears the selection. The region list
+/// and selection live in the shared `WineAnswerDraft` from the environment.
 struct WineRegionPickerView: View {
-  let regions: [WineRegion]
-  @Binding var selection: UUID?
-
+  @Environment(WineAnswerDraft.self) private var draft
   @Environment(\.dismiss) private var dismiss
   @State private var query = ""
+
+  private var regions: [WineRegion] { draft.catalog.regions }
+  private var selection: UUID? { draft.selectedRegionID }
 
   private var trimmedQuery: String {
     query.trimmingCharacters(in: .whitespaces)
@@ -31,7 +33,7 @@ struct WineRegionPickerView: View {
   var body: some View {
     List {
       Button {
-        selection = nil
+        draft.selectedRegionID = nil
         dismiss()
       } label: {
         selectableLabel(title: "None", isSelected: selection == nil)
@@ -53,7 +55,7 @@ struct WineRegionPickerView: View {
 
   private func regionButton(_ region: WineRegion) -> some View {
     Button {
-      selection = region.id
+      draft.selectedRegionID = region.id
       dismiss()
     } label: {
       selectableLabel(title: region.name, isSelected: selection == region.id)

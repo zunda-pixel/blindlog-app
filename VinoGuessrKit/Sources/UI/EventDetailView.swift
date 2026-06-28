@@ -6,6 +6,7 @@ import API
 struct EventDetailView: View {
   @Environment(AccountStore.self) private var store
   @Environment(ErrorState.self) private var errorState
+  @Environment(Router.self) private var router
 
   @State private var event: Event
   @State private var organizer: UserProfile?
@@ -117,10 +118,8 @@ struct EventDetailView: View {
       }
 
       Section {
-        NavigationLink {
-          QuestionListView(event: event)
-            .environment(store)
-            .environment(errorState)
+        Button {
+          router.items.append(.questions(event))
         } label: {
           Label("Questions", systemImage: "list.number")
         }
@@ -128,9 +127,8 @@ struct EventDetailView: View {
 
       if isOrganizer {
         Section("Manage") {
-          NavigationLink {
-            ParticipantListView(event: event)
-              .environment(store)
+          Button {
+            router.items.append(.participants(event))
           } label: {
             Label("Participants", systemImage: "person.2")
           }

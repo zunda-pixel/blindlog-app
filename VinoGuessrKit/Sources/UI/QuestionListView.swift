@@ -9,6 +9,7 @@ private let logger = Logger(subsystem: "com.vinoguessr.app", category: "Question
 struct QuestionListView: View {
   @Environment(AccountStore.self) private var store
   @Environment(ErrorState.self) private var errorState
+  @Environment(Router.self) private var router
 
   let event: Event
 
@@ -51,13 +52,14 @@ struct QuestionListView: View {
           }
         }
       }
-      .navigationDestination(for: EventQuestion.self) { question in
-        AnswerQuestionView(event: event, question: question) { response in
-          myResponses[question.id] = response
-        }
-        .environment(store)
-      }
       .task { await load() }
+      .onChange(of: router.items) { _, items in
+        // Returning from the pushed answer screen: refresh the answered/score
+        // status (the answer view no longer reports back through a closure).
+        if items.last == .questions(event) {
+          Task { await load() }
+        }
+      }
       .sheet(isPresented: $isAddingQuestion) {
         CreateQuestionView(eventID: event.id, suggestedNumber: nextQuestionNumber) { _, _ in
           Task { await load() }
@@ -113,9 +115,12 @@ struct QuestionListView: View {
       }
       .buttonStyle(.plain)
     } else {
-      NavigationLink(value: question) {
+      Button {
+        router.items.append(.answerQuestion(event, question))
+      } label: {
         rowLabel(for: question)
       }
+      .buttonStyle(.plain)
     }
   }
 

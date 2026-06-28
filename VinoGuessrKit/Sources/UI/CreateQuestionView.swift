@@ -27,15 +27,8 @@ struct CreateQuestionView: View {
   @State private var numberText: String
   @State private var note = ""
 
-  // Correct answer
-  @State private var selectedRegionID: UUID?
-  @State private var selectedVarietyIDs: Set<UUID> = []
-  @State private var vintageText = ""
-  @State private var abvText = ""
-
-  // Wine master data
-  @State private var catalog = WineCatalog()
-  @State private var catalogState: WineAnswerForm.CatalogState = .loading
+  // Correct answer + wine master data, shared with the pushed pickers.
+  @State private var draft: WineAnswerDraft
 
   // Image
   @State private var pickedItem: PhotosPickerItem?
@@ -45,6 +38,8 @@ struct CreateQuestionView: View {
 
   @State private var isSubmitting = false
   @State private var submitError: String?
+  
+  @State private var router = Router()
 
   init(
     eventID: UUID,
@@ -58,15 +53,17 @@ struct CreateQuestionView: View {
     self.onCreated = onCreated
     _numberText = State(initialValue: String(editing?.question.questionNumber ?? suggestedNumber))
     _note = State(initialValue: editing?.question.note ?? "")
-    _selectedRegionID = State(initialValue: editing?.answer?.wineRegionID)
-    _selectedVarietyIDs = State(initialValue: Set(editing?.answer?.wineVarietyIDs ?? []))
-    _vintageText = State(initialValue: editing?.answer?.vintage.map { String($0) } ?? "")
-    _abvText = State(initialValue: editing?.answer?.alcoholByVolume.map { String($0) } ?? "")
     _existingImageID = State(initialValue: editing?.question.imageID)
+    _draft = State(initialValue: WineAnswerDraft(
+      selectedRegionID: editing?.answer?.wineRegionID,
+      selectedVarietyIDs: Set(editing?.answer?.wineVarietyIDs ?? []),
+      vintageText: editing?.answer?.vintage.map { String($0) } ?? "",
+      abvText: editing?.answer?.alcoholByVolume.map { String($0) } ?? ""
+    ))
   }
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $router.items) {
       Form {
         Section("Question") {
           TextField("Number", text: $numberText)
@@ -94,15 +91,7 @@ struct CreateQuestionView: View {
         }
 
         Section("Correct Answer (optional)") {
-          WineAnswerForm(
-            catalog: catalog,
-            catalogState: catalogState,
-            onRetry: { Task { await loadCatalog() } },
-            selectedRegionID: $selectedRegionID,
-            selectedVarietyIDs: $selectedVarietyIDs,
-            vintageText: $vintageText,
-            abvText: $abvText
-          )
+          WineAnswerForm(onRetry: { Task { await loadCatalog() } })
         }
 
         if let submitError {
@@ -116,6 +105,16 @@ struct CreateQuestionView: View {
       .formStyle(.grouped)
       .disabled(isSubmitting)
       .navigationTitle(editing == nil ? "New Question" : "Edit Question")
+      .navigationDestination(for: Router.Item.self) { item in
+        switch item {
+        case .wineRegionPicker:
+          WineRegionPickerView()
+        case .wineVarietyPicker:
+          WineVarietyPickerView()
+        default:
+          EmptyView()
+        }
+      }
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           Button(role: .cancel) { dismiss() }
@@ -132,6 +131,8 @@ struct CreateQuestionView: View {
         Task { await loadImage(item) }
       }
     }
+    .environment(router)
+    .environment(draft)
   }
 
   private func loadImage(_ item: PhotosPickerItem?) async {
@@ -144,19 +145,19 @@ struct CreateQuestionView: View {
   }
 
   private var hasAnswerInput: Bool {
-    selectedRegionID != nil
-      || !selectedVarietyIDs.isEmpty
-      || !vintageText.trimmingCharacters(in: .whitespaces).isEmpty
-      || !abvText.trimmingCharacters(in: .whitespaces).isEmpty
+    draft.selectedRegionID != nil
+      || !draft.selectedVarietyIDs.isEmpty
+      || !draft.vintageText.trimmingCharacters(in: .whitespaces).isEmpty
+      || !draft.abvText.trimmingCharacters(in: .whitespaces).isEmpty
   }
 
   private func loadCatalog() async {
-    catalogState = .loading
+    draft.catalogState = .loading
     do {
-      catalog = try await WineCatalog.load(using: store)
-      catalogState = .loaded
+      draft.catalog = try await WineCatalog.load(using: store)
+      draft.catalogState = .loaded
     } catch {
-      catalogState = .failed
+      draft.catalogState = .failed
       logger.error("Failed to load wine catalog: \(String(describing: error))")
     }
   }
@@ -194,10 +195,10 @@ struct CreateQuestionView: View {
       var answerRequest: CreateEventQuestionCorrectAnswerRequest?
       if hasAnswerInput {
         let request = CreateEventQuestionCorrectAnswerRequest(
-          wineRegionID: selectedRegionID,
-          vintage: Int32(vintageText.trimmingCharacters(in: .whitespaces)),
-          alcoholByVolume: Double(abvText.trimmingCharacters(in: .whitespaces)),
-          wineVarietyIDs: Array(selectedVarietyIDs)
+          wineRegionID: draft.selectedRegionID,
+          vintage: Int32(draft.vintageText.trimmingCharacters(in: .whitespaces)),
+          alcoholByVolume: Double(draft.abvText.trimmingCharacters(in: .whitespaces)),
+          wineVarietyIDs: Array(draft.selectedVarietyIDs)
         )
         if editing?.answer != nil {
           _ = try await api.updateCorrectAnswer(eventID: eventID, questionID: question.id, request)

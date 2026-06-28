@@ -32,11 +32,13 @@ struct EditProfileView: View {
   @State private var emailStage: EmailStage = .idle
   @State private var emailBusy = false
 
+  @State private var router = Router()
+  
   private enum Phase: Equatable { case loading, editing, saving }
   private enum EmailStage: Equatable { case idle, codeSent }
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $router.items) {
       Group {
         switch phase {
         case .loading:

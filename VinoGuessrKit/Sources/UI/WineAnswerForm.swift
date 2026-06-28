@@ -1,27 +1,56 @@
 import API
+import Observation
 import SwiftUI
+
+/// The shared, observable state behind the wine-answer input rows: the loaded
+/// catalog and the current selection (region, varieties, vintage, alcohol by
+/// volume). Lifting this out of the parent view lets the region/variety pickers
+/// be pushed with value-based routing and mutate the selection directly through
+/// the environment, instead of threading `@Binding`s through `NavigationLink`.
+@Observable
+final class WineAnswerDraft {
+  var catalog: WineCatalog
+  var catalogState: WineAnswerForm.CatalogState
+  var selectedRegionID: UUID?
+  var selectedVarietyIDs: Set<UUID>
+  var vintageText: String
+  var abvText: String
+
+  init(
+    catalog: WineCatalog = WineCatalog(),
+    catalogState: WineAnswerForm.CatalogState = .loading,
+    selectedRegionID: UUID? = nil,
+    selectedVarietyIDs: Set<UUID> = [],
+    vintageText: String = "",
+    abvText: String = ""
+  ) {
+    self.catalog = catalog
+    self.catalogState = catalogState
+    self.selectedRegionID = selectedRegionID
+    self.selectedVarietyIDs = selectedVarietyIDs
+    self.vintageText = vintageText
+    self.abvText = abvText
+  }
+}
 
 /// The shared wine-answer input rows — region, varieties, vintage, and alcohol
 /// by volume — used both when an organizer sets a question's correct answer
 /// (`CreateQuestionView`) and when a participant submits their guess
-/// (`AnswerQuestionView`). The rows are meant to be placed inside a `Form`
-/// `Section`; the parent owns the catalog and its load state so the same data
-/// can also drive a result view.
+/// (`AnswerQuestionView`). The rows read and write the `WineAnswerDraft` from
+/// the environment, and push the region/variety pickers through the `Router` so
+/// no `NavigationLink` is needed. Meant to be placed inside a `Form` `Section`.
 struct WineAnswerForm: View {
   enum CatalogState: Equatable { case loading, loaded, failed }
 
-  let catalog: WineCatalog
-  let catalogState: CatalogState
+  @Environment(WineAnswerDraft.self) private var draft
+  @Environment(Router.self) private var router
+
   var onRetry: () -> Void
 
-  @Binding var selectedRegionID: UUID?
-  @Binding var selectedVarietyIDs: Set<UUID>
-  @Binding var vintageText: String
-  @Binding var abvText: String
-
   var body: some View {
+    @Bindable var draft = draft
     Group {
-      switch catalogState {
+      switch draft.catalogState {
       case .loading:
         HStack {
           Text("Region")
@@ -36,30 +65,30 @@ struct WineAnswerForm: View {
           Button("Retry", action: onRetry)
         }
       case .loaded:
-        NavigationLink {
-          WineRegionPickerView(regions: catalog.regions, selection: $selectedRegionID)
+        Button {
+          router.items.append(.wineRegionPicker)
         } label: {
-          LabeledContent("Region", value: catalog.regionName(selectedRegionID) ?? "None")
+          LabeledContent("Region", value: draft.catalog.regionName(draft.selectedRegionID) ?? "None")
+            .contentShape(.rect)
         }
+        .buttonStyle(.plain)
 
-        NavigationLink {
-          WineVarietyPickerView(
-            varieties: catalog.varieties,
-            styles: catalog.styles,
-            selection: $selectedVarietyIDs
-          )
+        Button {
+          router.items.append(.wineVarietyPicker)
         } label: {
           LabeledContent("Varieties", value: selectedVarietiesSummary)
+            .contentShape(.rect)
         }
+        .buttonStyle(.plain)
       }
 
-      TextField("Vintage (year)", text: $vintageText)
-      TextField("Alcohol by volume (%)", text: $abvText)
+      TextField("Vintage (year)", text: $draft.vintageText)
+      TextField("Alcohol by volume (%)", text: $draft.abvText)
     }
   }
 
   private var selectedVarietiesSummary: String {
-    let names = catalog.varietyNames(selectedVarietyIDs)
+    let names = draft.catalog.varietyNames(draft.selectedVarietyIDs)
     return names.isEmpty ? "None" : names.joined(separator: ", ")
   }
 }

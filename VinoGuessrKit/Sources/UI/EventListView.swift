@@ -9,8 +9,8 @@ private let logger = Logger(subsystem: "com.vinoguessr.app", category: "EventLis
 /// event, and pushes an event's detail (where questions can be added).
 struct EventListView: View {
   @Environment(AccountStore.self) private var store
-  @Binding var path: [Event]
-
+  @Environment(Router.self) private var router
+  
   @State private var events: [Event] = []
   @State private var loadState: LoadState = .loading
   @State private var isCreatingEvent = false
@@ -45,16 +45,16 @@ struct EventListView: View {
         }
       case .loaded:
         List(events) { event in
-          NavigationLink(value: event) {
+          Button {
+            router.items.append(.event(event))
+          } label: {
             EventRow(event: event)
           }
+          .buttonStyle(.plain)
         }
       }
     }
     .navigationTitle("Events")
-    .navigationDestination(for: Event.self) { event in
-      EventDetailView(event: event)
-    }
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
         Button("New Event", systemImage: "plus") {
@@ -65,7 +65,7 @@ struct EventListView: View {
     .sheet(isPresented: $isCreatingEvent) {
       CreateEventView { event in
         Task { await load() }
-        path.append(event)
+        router.items.append(.event(event))
       }
       .environment(store)
     }

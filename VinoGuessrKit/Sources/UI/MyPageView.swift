@@ -7,6 +7,7 @@ import API
 struct MyPageView: View {
   @Environment(AccountStore.self) private var store
   @Environment(ErrorState.self) private var errorState
+  @Environment(Router.self) private var router
 
   @State private var organized: [Event] = []
   @State private var participating: [Event] = []
@@ -22,9 +23,12 @@ struct MyPageView: View {
             .foregroundStyle(.secondary)
         } else {
           ForEach(organized) { event in
-            NavigationLink(value: event) {
+            Button {
+              router.items.append(.event(event))
+            } label: {
               EventRow(event: event)
             }
+            .buttonStyle(.plain)
           }
         }
       }
@@ -35,9 +39,12 @@ struct MyPageView: View {
             .foregroundStyle(.secondary)
         } else {
           ForEach(participating) { event in
-            NavigationLink(value: event) {
+            Button {
+              router.items.append(.event(event))
+            } label: {
               EventRow(event: event)
             }
+            .buttonStyle(.plain)
           }
         }
       }
@@ -48,9 +55,6 @@ struct MyPageView: View {
       }
     }
     .navigationTitle("My Page")
-    .navigationDestination(for: Event.self) { event in
-      EventDetailView(event: event)
-    }
     .toolbar {
       AccountSwitcherToolbar(isPresentingEmailSignIn: $isPresentingEmailSignIn)
       ToolbarItem(placement: .primaryAction) {

@@ -7,8 +7,13 @@ private let logger = Logger(subsystem: "com.vinoguessr.app", category: "AnswerQu
 /// Lets a participant submit (or edit) their guess for a blind tasting
 /// question: the wine's region, varieties, vintage, alcohol by volume, and an
 /// optional note. Pre-fills from the user's existing response when present.
+///
+/// The wine selection lives in the stack-shared `WineAnswerDraft` (so the
+/// region/variety pickers can be pushed via the `Router`); this view resets and
+/// populates that draft when it loads.
 struct AnswerQuestionView: View {
   @Environment(AccountStore.self) private var store
+  @Environment(WineAnswerDraft.self) private var draft
   @Environment(\.dismiss) private var dismiss
 
   let event: Event
@@ -16,14 +21,8 @@ struct AnswerQuestionView: View {
   /// Called with the saved response so the question list can refresh its status.
   var onSubmitted: (EventQuestionResponse) -> Void
 
-  @State private var selectedRegionID: UUID?
-  @State private var selectedVarietyIDs: Set<UUID> = []
-  @State private var vintageText = ""
-  @State private var abvText = ""
   @State private var note = ""
 
-  @State private var catalog = WineCatalog()
-  @State private var catalogState: WineAnswerForm.CatalogState = .loading
   @State private var existingResponse: EventQuestionResponse?
 
   // Reveal mode (after answers are published).
@@ -32,6 +31,8 @@ struct AnswerQuestionView: View {
 
   @State private var isSubmitting = false
   @State private var submitError: String?
+
+  private var catalog: WineCatalog { draft.catalog }
 
   /// Whether the organizer has published the answers and the publish time has
   /// passed, switching this screen from editable to read-only result mode.
@@ -62,15 +63,7 @@ struct AnswerQuestionView: View {
         resultSections
       } else {
         Section("Your Answer") {
-          WineAnswerForm(
-            catalog: catalog,
-            catalogState: catalogState,
-            onRetry: { Task { await loadCatalog() } },
-            selectedRegionID: $selectedRegionID,
-            selectedVarietyIDs: $selectedVarietyIDs,
-            vintageText: $vintageText,
-            abvText: $abvText
-          )
+          WineAnswerForm(onRetry: { Task { await loadCatalog() } })
           TextField("Note (optional)", text: $note, axis: .vertical)
             .lineLimit(2...5)
         }
@@ -170,6 +163,14 @@ struct AnswerQuestionView: View {
   }
 
   private func load() async {
+    // The draft is shared across the stack, so clear any selection left over
+    // from a previously answered question before populating this one.
+    draft.selectedRegionID = nil
+    draft.selectedVarietyIDs = []
+    draft.vintageText = ""
+    draft.abvText = ""
+    note = ""
+
     await loadCatalog()
     guard let api = try? await store.authenticatedAPI() else { return }
     existingResponse = (try? await api.myResponseIfExists(eventID: event.id, questionID: question.id)) ?? nil
@@ -185,21 +186,21 @@ struct AnswerQuestionView: View {
         )
       }
     } else if let response = existingResponse {
-      selectedRegionID = response.wineRegionID
-      selectedVarietyIDs = Set(response.wineVarietyIDs)
-      vintageText = response.vintage.map { String($0) } ?? ""
-      abvText = response.alcoholByVolume.map { String($0) } ?? ""
+      draft.selectedRegionID = response.wineRegionID
+      draft.selectedVarietyIDs = Set(response.wineVarietyIDs)
+      draft.vintageText = response.vintage.map { String($0) } ?? ""
+      draft.abvText = response.alcoholByVolume.map { String($0) } ?? ""
       note = response.note ?? ""
     }
   }
 
   private func loadCatalog() async {
-    catalogState = .loading
+    draft.catalogState = .loading
     do {
-      catalog = try await WineCatalog.load(using: store)
-      catalogState = .loaded
+      draft.catalog = try await WineCatalog.load(using: store)
+      draft.catalogState = .loaded
     } catch {
-      catalogState = .failed
+      draft.catalogState = .failed
       logger.error("Failed to load wine catalog: \(String(describing: error))")
     }
   }
@@ -211,11 +212,11 @@ struct AnswerQuestionView: View {
       let api = try await store.authenticatedAPI()
       let trimmedNote = note.trimmingCharacters(in: .whitespaces)
       let request = CreateEventQuestionResponseRequest(
-        wineRegionID: selectedRegionID,
-        vintage: Int32(vintageText.trimmingCharacters(in: .whitespaces)),
-        alcoholByVolume: Double(abvText.trimmingCharacters(in: .whitespaces)),
+        wineRegionID: draft.selectedRegionID,
+        vintage: Int32(draft.vintageText.trimmingCharacters(in: .whitespaces)),
+        alcoholByVolume: Double(draft.abvText.trimmingCharacters(in: .whitespaces)),
         note: trimmedNote.isEmpty ? nil : trimmedNote,
-        wineVarietyIDs: Array(selectedVarietyIDs)
+        wineVarietyIDs: Array(draft.selectedVarietyIDs)
       )
 
       let response: EventQuestionResponse

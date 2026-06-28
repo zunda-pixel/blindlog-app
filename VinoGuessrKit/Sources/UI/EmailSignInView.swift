@@ -17,10 +17,12 @@ struct EmailSignInView: View {
   @State private var isBusy = false
   @State private var errorMessage: String?
 
+  @State private var router = Router()
+  
   private var codeSent: Bool { challenge != nil }
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $router.items) {
       Form {
         Section {
           TextField("Email", text: $email)

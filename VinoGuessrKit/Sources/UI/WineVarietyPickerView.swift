@@ -4,13 +4,15 @@ import API
 /// A multi-selection picker for wine varieties, grouped into a section per wine
 /// style (Red, White). A variety belongs to a section when its `wineStyleIDs`
 /// contains that style. A search field filters within the sections. Tapping a
-/// row toggles its membership.
+/// row toggles its membership. The variety/style lists and the selection live
+/// in the shared `WineAnswerDraft` from the environment.
 struct WineVarietyPickerView: View {
-  let varieties: [WineVariety]
-  let styles: [WineStyle]
-  @Binding var selection: Set<UUID>
-
+  @Environment(WineAnswerDraft.self) private var draft
   @State private var query = ""
+
+  private var varieties: [WineVariety] { draft.catalog.varieties }
+  private var styles: [WineStyle] { draft.catalog.styles }
+  private var selection: Set<UUID> { draft.selectedVarietyIDs }
 
   private var trimmedQuery: String {
     query.trimmingCharacters(in: .whitespaces)
@@ -72,10 +74,10 @@ struct WineVarietyPickerView: View {
   }
 
   private func toggle(_ id: UUID) {
-    if selection.contains(id) {
-      selection.remove(id)
+    if draft.selectedVarietyIDs.contains(id) {
+      draft.selectedVarietyIDs.remove(id)
     } else {
-      selection.insert(id)
+      draft.selectedVarietyIDs.insert(id)
     }
   }
 }
