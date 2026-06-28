@@ -9,6 +9,10 @@ struct AccountSwitcherToolbar: ToolbarContent {
   @Environment(ErrorState.self) private var errorState
   @Environment(\.authorizationController) private var authorizationController
 
+  /// Toggled to present the email sign-in sheet, which a parent view hosts
+  /// (`ToolbarContent` cannot present sheets itself).
+  @Binding var isPresentingEmailSignIn: Bool
+
   var body: some ToolbarContent {
     ToolbarItem(placement: .primaryAction) {
       Menu {
@@ -39,6 +43,10 @@ struct AccountSwitcherToolbar: ToolbarContent {
 
         Button("Sign in with Passkey", systemImage: "person.badge.key") {
           Task { await signInWithPasskey() }
+        }
+
+        Button("Sign in with Email", systemImage: "envelope") {
+          isPresentingEmailSignIn = true
         }
 
         if let current = store.currentAccountID {

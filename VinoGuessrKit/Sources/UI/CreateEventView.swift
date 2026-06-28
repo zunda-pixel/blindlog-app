@@ -33,6 +33,9 @@ struct CreateEventView: View {
   @State private var coordinate: GeoCoordinate?
   @State private var startsAt = Date().addingTimeInterval(86_400)
   @State private var endsAt = Date().addingTimeInterval(86_400 + 7_200)
+  @State private var registrationEnabled = false
+  @State private var registrationStartsAt = Date()
+  @State private var registrationEndsAt = Date().addingTimeInterval(86_400)
   @State private var visibility: EventVisibility = .public
   @State private var capacityText = ""
   @State private var publishImmediately = true
@@ -117,6 +120,14 @@ struct CreateEventView: View {
       Section("Schedule") {
         DatePicker("Starts", selection: $startsAt)
         DatePicker("Ends", selection: $endsAt, in: startsAt...)
+      }
+
+      Section("Registration") {
+        Toggle("Limit registration period", isOn: $registrationEnabled)
+        if registrationEnabled {
+          DatePicker("Opens", selection: $registrationStartsAt)
+          DatePicker("Closes", selection: $registrationEndsAt, in: registrationStartsAt...)
+        }
       }
 
       Section("Pricing") {
@@ -264,6 +275,11 @@ struct CreateEventView: View {
     coordinate = editing.venueCoordinate
     startsAt = editing.eventPeriod.startsAt
     endsAt = editing.eventPeriod.endsAt
+    if let registration = editing.registrationPeriod {
+      registrationEnabled = true
+      registrationStartsAt = registration.startsAt
+      registrationEndsAt = registration.endsAt
+    }
     visibility = editing.visibility
     capacityText = editing.capacity.map { String($0) } ?? ""
     existingImageID = editing.imageID
@@ -333,11 +349,16 @@ struct CreateEventView: View {
           countryCode: countryCode.trimmingCharacters(in: .whitespaces).uppercased()
         ),
         venueCoordinate: coordinate,
+        registrationPeriod: registrationEnabled
+          ? DateTimePeriod(startsAt: registrationStartsAt, endsAt: registrationEndsAt)
+          : nil,
         eventPeriod: DateTimePeriod(startsAt: startsAt, endsAt: endsAt),
+        answersPublishedAt: editing?.answersPublishedAt,
         capacity: Int32(capacityText.trimmingCharacters(in: .whitespaces)),
         entryFee: entryFee,
         visibility: visibility,
-        publishedAt: publishImmediately ? Date() : nil,
+        publishedAt: publishImmediately ? (editing?.publishedAt ?? Date()) : nil,
+        canceledAt: editing?.canceledAt,
         regionScoreRules: regionScoreRules.isEmpty ? nil : regionScoreRules
       )
 

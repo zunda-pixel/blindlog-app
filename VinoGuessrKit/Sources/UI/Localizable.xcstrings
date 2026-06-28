@@ -1,6 +1,19 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ (%2$lld)"
+          }
+        }
+      }
+    },
+    "%d pts" : {
+
+    },
     "0" : {
 
     },
@@ -8,6 +21,9 @@
 
     },
     "Add" : {
+
+    },
+    "Add a question to get started." : {
 
     },
     "Add email" : {
@@ -19,16 +35,34 @@
     "Add Passkey" : {
 
     },
-    "Add Question" : {
-
-    },
     "Address" : {
 
     },
     "Alcohol by volume (%)" : {
 
     },
+    "Answered" : {
+
+    },
+    "Answers published" : {
+
+    },
     "Cancel" : {
+
+    },
+    "Cancel Event" : {
+
+    },
+    "Cancel Registration" : {
+
+    },
+    "Cancel this event?" : {
+
+    },
+    "Cancel your registration?" : {
+
+    },
+    "Canceled" : {
 
     },
     "Capacity" : {
@@ -37,10 +71,22 @@
     "Capacity (optional)" : {
 
     },
+    "Closes" : {
+
+    },
+    "Correct Answer" : {
+
+    },
     "Correct Answer (optional)" : {
 
     },
     "Couldn’t Load Events" : {
+
+    },
+    "Couldn’t Load Participants" : {
+
+    },
+    "Couldn’t Load Questions" : {
 
     },
     "Couldn’t load wine data" : {
@@ -79,10 +125,16 @@
     "Edit Question" : {
 
     },
+    "Email" : {
+
+    },
     "Emails" : {
 
     },
     "Ends" : {
+
+    },
+    "Entry fee" : {
 
     },
     "Entry fee (optional)" : {
@@ -100,7 +152,13 @@
     "Join Event" : {
 
     },
+    "Limit registration period" : {
+
+    },
     "Location" : {
+
+    },
+    "Manage" : {
 
     },
     "My Page" : {
@@ -115,6 +173,9 @@
     "New Question" : {
 
     },
+    "No correct answer was set." : {
+
+    },
     "No emails." : {
 
     },
@@ -124,13 +185,25 @@
     "No events joined." : {
 
     },
+    "No one has registered for this event yet." : {
+
+    },
     "No organized events." : {
 
     },
-    "No questions added yet." : {
+    "No Participants" : {
+
+    },
+    "No Questions" : {
 
     },
     "None" : {
+
+    },
+    "Not answered" : {
+
+    },
+    "Note" : {
 
     },
     "Note (optional)" : {
@@ -140,6 +213,12 @@
 
     },
     "OK" : {
+
+    },
+    "One-time code" : {
+
+    },
+    "Opens" : {
 
     },
     "Options" : {
@@ -154,6 +233,9 @@
     "Organizer Profile" : {
 
     },
+    "Participants" : {
+
+    },
     "Participating" : {
 
     },
@@ -163,10 +245,19 @@
     "Points awarded per region type (0 = unused)." : {
 
     },
+    "Points earned" : {
+
+    },
     "Pricing" : {
 
     },
     "Profile" : {
+
+    },
+    "Publish Answers" : {
+
+    },
+    "Publish answers to all participants?" : {
 
     },
     "Publish immediately" : {
@@ -187,6 +278,15 @@
     "Registered" : {
 
     },
+    "Registration" : {
+
+    },
+    "Registration closes" : {
+
+    },
+    "Registration opens" : {
+
+    },
     "Remove Image" : {
 
     },
@@ -199,6 +299,9 @@
     "Schedule" : {
 
     },
+    "Score" : {
+
+    },
     "Scoring" : {
 
     },
@@ -209,6 +312,12 @@
 
     },
     "Send Code" : {
+
+    },
+    "Sign In" : {
+
+    },
+    "Sign in with Email" : {
 
     },
     "Sign in with Passkey" : {
@@ -224,6 +333,12 @@
 
     },
     "Starts" : {
+
+    },
+    "Submit" : {
+
+    },
+    "The organizer hasn’t added any questions yet." : {
 
     },
     "Title" : {
@@ -244,6 +359,9 @@
     "Verification code" : {
 
     },
+    "Verification Code" : {
+
+    },
     "Verify" : {
 
     },
@@ -251,6 +369,12 @@
 
     },
     "Visibility" : {
+
+    },
+    "You didn’t answer this question." : {
+
+    },
+    "Your Answer" : {
 
     },
     "Your name" : {

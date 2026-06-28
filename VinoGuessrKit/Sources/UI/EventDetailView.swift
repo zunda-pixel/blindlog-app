@@ -1,31 +1,21 @@
 import SwiftUI
 import API
 
-/// Shows an event's details. The organizer can edit the event, add and edit
-/// questions; other users can register to participate.
-///
-/// Note: the API exposes no endpoint to list an event's existing questions, so
-/// the questions section shows only the questions added during this session.
+/// Shows an event's details. The organizer can edit the event and manage its
+/// questions; other users can register to participate and answer questions.
 struct EventDetailView: View {
   @Environment(AccountStore.self) private var store
   @Environment(ErrorState.self) private var errorState
 
-  /// A question created this session, paired with the correct answer that was
-  /// submitted for it (so it can be re-edited; there is no GET to fetch it).
-  struct AddedQuestion: Identifiable {
-    var question: EventQuestion
-    var answer: CreateEventQuestionCorrectAnswerRequest?
-    var id: UUID { question.id }
-  }
-
   @State private var event: Event
   @State private var organizer: UserProfile?
-  @State private var addedQuestions: [AddedQuestion] = []
-  @State private var isAddingQuestion = false
-  @State private var editingQuestion: AddedQuestion?
   @State private var isEditingEvent = false
   @State private var joined = false
   @State private var isJoining = false
+  @State private var isUpdatingEvent = false
+  @State private var confirmPublishAnswers = false
+  @State private var confirmCancelEvent = false
+  @State private var confirmCancelRegistration = false
 
   init(event: Event) {
     _event = State(initialValue: event)
@@ -35,9 +25,8 @@ struct EventDetailView: View {
     store.currentAccountID == event.organizerUserID
   }
 
-  private var nextQuestionNumber: Int32 {
-    (addedQuestions.map(\.question.questionNumber).max() ?? 0) + 1
-  }
+  private var answersPublished: Bool { event.answersPublishedAt != nil }
+  private var eventCanceled: Bool { event.canceledAt != nil }
 
   var body: some View {
     Form {
@@ -49,6 +38,13 @@ struct EventDetailView: View {
         LabeledContent("Visibility", value: event.visibility.displayName)
         if let capacity = event.capacity {
           LabeledContent("Capacity", value: "\(capacity)")
+        }
+        if let entryFee = event.entryFee {
+          LabeledContent("Entry fee", value: feeText(entryFee))
+        }
+        if eventCanceled {
+          Label("Canceled", systemImage: "xmark.circle.fill")
+            .foregroundStyle(.red)
         }
       }
 
@@ -86,13 +82,25 @@ struct EventDetailView: View {
         LabeledContent("Ends") {
           Text(event.eventPeriod.endsAt, format: .dateTime)
         }
+        if let registration = event.registrationPeriod {
+          LabeledContent("Registration opens") {
+            Text(registration.startsAt, format: .dateTime)
+          }
+          LabeledContent("Registration closes") {
+            Text(registration.endsAt, format: .dateTime)
+          }
+        }
       }
 
-      if !isOrganizer {
+      if !isOrganizer, !eventCanceled {
         Section {
           if joined {
             Label("Registered", systemImage: "checkmark.circle.fill")
               .foregroundStyle(.green)
+            Button("Cancel Registration", role: .destructive) {
+              confirmCancelRegistration = true
+            }
+            .disabled(isJoining)
           } else {
             Button {
               Task { await join() }
@@ -108,33 +116,40 @@ struct EventDetailView: View {
         }
       }
 
+      Section {
+        NavigationLink {
+          QuestionListView(event: event)
+            .environment(store)
+            .environment(errorState)
+        } label: {
+          Label("Questions", systemImage: "list.number")
+        }
+      }
+
       if isOrganizer {
-        Section("Questions") {
-          if addedQuestions.isEmpty {
-            Text("No questions added yet.")
-              .foregroundStyle(.secondary)
-          } else {
-            ForEach(addedQuestions) { added in
-              Button {
-                editingQuestion = added
-              } label: {
-                VStack(alignment: .leading, spacing: 2) {
-                  Text("Question \(added.question.questionNumber)")
-                    .font(.headline)
-                  if let note = added.question.note, !note.isEmpty {
-                    Text(note)
-                      .font(.subheadline)
-                      .foregroundStyle(.secondary)
-                  }
-                }
-                .contentShape(.rect)
-              }
-              .buttonStyle(.plain)
-            }
+        Section("Manage") {
+          NavigationLink {
+            ParticipantListView(event: event)
+              .environment(store)
+          } label: {
+            Label("Participants", systemImage: "person.2")
           }
 
-          Button("Add Question", systemImage: "plus") {
-            isAddingQuestion = true
+          if answersPublished {
+            Label("Answers published", systemImage: "checkmark.seal.fill")
+              .foregroundStyle(.green)
+          } else {
+            Button("Publish Answers", systemImage: "checkmark.seal") {
+              confirmPublishAnswers = true
+            }
+            .disabled(isUpdatingEvent)
+          }
+
+          if !eventCanceled {
+            Button("Cancel Event", systemImage: "xmark.circle", role: .destructive) {
+              confirmCancelEvent = true
+            }
+            .disabled(isUpdatingEvent)
           }
         }
       }
@@ -153,24 +168,6 @@ struct EventDetailView: View {
     }
     .task { await loadOrganizer() }
     .task { await loadParticipation() }
-    .sheet(isPresented: $isAddingQuestion) {
-      CreateQuestionView(eventID: event.id, suggestedNumber: nextQuestionNumber) { question, answer in
-        addedQuestions.append(AddedQuestion(question: question, answer: answer))
-      }
-      .environment(store)
-    }
-    .sheet(item: $editingQuestion) { added in
-      CreateQuestionView(
-        eventID: event.id,
-        suggestedNumber: added.question.questionNumber,
-        editing: (added.question, added.answer)
-      ) { question, answer in
-        if let index = addedQuestions.firstIndex(where: { $0.id == question.id }) {
-          addedQuestions[index] = AddedQuestion(question: question, answer: answer)
-        }
-      }
-      .environment(store)
-    }
     .sheet(isPresented: $isEditingEvent) {
       CreateEventView(editing: event) { updated in
         event = updated
@@ -178,6 +175,43 @@ struct EventDetailView: View {
       .environment(store)
       .environment(errorState)
     }
+    .confirmationDialog(
+      "Publish answers to all participants?",
+      isPresented: $confirmPublishAnswers,
+      titleVisibility: .visible
+    ) {
+      Button("Publish Answers") {
+        Task { await updateEvent { $0.answersPublishedAt = Date() } }
+      }
+    }
+    .confirmationDialog(
+      "Cancel this event?",
+      isPresented: $confirmCancelEvent,
+      titleVisibility: .visible
+    ) {
+      Button("Cancel Event", role: .destructive) {
+        Task { await updateEvent { $0.canceledAt = Date() } }
+      }
+    }
+    .confirmationDialog(
+      "Cancel your registration?",
+      isPresented: $confirmCancelRegistration,
+      titleVisibility: .visible
+    ) {
+      Button("Cancel Registration", role: .destructive) {
+        Task { await cancelRegistration() }
+      }
+    }
+  }
+
+  /// Formats a `Money` value using the currency's locale conventions.
+  private func feeText(_ money: Money) -> String {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .currency
+    formatter.currencyCode = money.currencyCode.rawValue
+    let digits = max(0, formatter.maximumFractionDigits)
+    let amount = Decimal(money.minorAmount) / pow(Decimal(10), digits)
+    return formatter.string(from: NSDecimalNumber(decimal: amount)) ?? "\(money.minorAmount)"
   }
 
   private func loadOrganizer() async {
@@ -201,5 +235,58 @@ struct EventDetailView: View {
     } catch {
       errorState.report(error)
     }
+  }
+
+  private func cancelRegistration() async {
+    isJoining = true
+    defer { isJoining = false }
+    do {
+      _ = try await store.authenticatedAPI()
+        .updateMyParticipation(eventID: event.id, UpdateEventParticipantRequest(status: .canceled))
+      joined = false
+    } catch {
+      errorState.report(error)
+    }
+  }
+
+  /// Applies a mutation to an update request built from the current event and
+  /// PUTs it, refreshing the displayed event. Used for organizer actions such
+  /// as publishing answers or canceling the event.
+  private func updateEvent(_ mutate: (inout CreateEventRequest) -> Void) async {
+    isUpdatingEvent = true
+    defer { isUpdatingEvent = false }
+    do {
+      var request = event.updateRequest
+      mutate(&request)
+      event = try await store.authenticatedAPI().updateEvent(id: event.id, request)
+    } catch {
+      errorState.report(error)
+    }
+  }
+}
+
+extension Event {
+  /// A `CreateEventRequest` mirroring this event's current state, so a single
+  /// field can be changed and PUT without dropping the others.
+  var updateRequest: CreateEventRequest {
+    CreateEventRequest(
+      title: title,
+      body: body,
+      imageID: imageID,
+      venueName: venueName,
+      venueAddress: venueAddress,
+      venueCoordinate: venueCoordinate,
+      registrationPeriod: registrationPeriod,
+      eventPeriod: eventPeriod,
+      answersPublishedAt: answersPublishedAt,
+      capacity: capacity,
+      entryFee: entryFee,
+      visibility: visibility,
+      publishedAt: publishedAt,
+      canceledAt: canceledAt,
+      regionScoreRules: regionScoreRules.map {
+        CreateEventRegionScoreRuleRequest(wineRegionTypeID: $0.wineRegionTypeID, points: $0.points)
+      }
+    )
   }
 }

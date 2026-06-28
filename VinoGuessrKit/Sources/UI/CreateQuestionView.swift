@@ -1,5 +1,6 @@
 import SwiftUI
 import OSLog
+import PhotosUI
 import API
 
 private let logger = Logger(subsystem: "com.vinoguessr.app", category: "CreateQuestionView")
@@ -33,15 +34,17 @@ struct CreateQuestionView: View {
   @State private var abvText = ""
 
   // Wine master data
-  @State private var regions: [WineRegion] = []
-  @State private var varieties: [WineVariety] = []
-  @State private var styles: [WineStyle] = []
-  @State private var catalogState: CatalogState = .loading
+  @State private var catalog = WineCatalog()
+  @State private var catalogState: WineAnswerForm.CatalogState = .loading
+
+  // Image
+  @State private var pickedItem: PhotosPickerItem?
+  @State private var imageData: Data?
+  @State private var existingImageID: UUID?
+  @State private var removeExistingImage = false
 
   @State private var isSubmitting = false
   @State private var submitError: String?
-
-  private enum CatalogState: Equatable { case loading, loaded, failed }
 
   init(
     eventID: UUID,
@@ -59,6 +62,7 @@ struct CreateQuestionView: View {
     _selectedVarietyIDs = State(initialValue: Set(editing?.answer?.wineVarietyIDs ?? []))
     _vintageText = State(initialValue: editing?.answer?.vintage.map { String($0) } ?? "")
     _abvText = State(initialValue: editing?.answer?.alcoholByVolume.map { String($0) } ?? "")
+    _existingImageID = State(initialValue: editing?.question.imageID)
   }
 
   var body: some View {
@@ -70,8 +74,35 @@ struct CreateQuestionView: View {
             .lineLimit(3...6)
         }
 
+        Section("Image") {
+          PhotosPicker("Select Image", selection: $pickedItem, matching: .images)
+          if let imageData, let image = PlatformImage(data: imageData) {
+            Image(image)
+              .resizable()
+              .scaledToFit()
+              .frame(maxHeight: 160)
+            Button("Remove Image", role: .destructive) {
+              self.imageData = nil
+              pickedItem = nil
+            }
+          } else if existingImageID != nil, !removeExistingImage {
+            LabeledContent("Current image", value: "Attached")
+            Button("Remove Image", role: .destructive) {
+              removeExistingImage = true
+            }
+          }
+        }
+
         Section("Correct Answer (optional)") {
-          answerRows
+          WineAnswerForm(
+            catalog: catalog,
+            catalogState: catalogState,
+            onRetry: { Task { await loadCatalog() } },
+            selectedRegionID: $selectedRegionID,
+            selectedVarietyIDs: $selectedVarietyIDs,
+            vintageText: $vintageText,
+            abvText: $abvText
+          )
         }
 
         if let submitError {
@@ -97,57 +128,15 @@ struct CreateQuestionView: View {
         }
       }
       .task { await loadCatalog() }
+      .onChange(of: pickedItem) { _, item in
+        Task { await loadImage(item) }
+      }
     }
   }
 
-  @ViewBuilder
-  private var answerRows: some View {
-    switch catalogState {
-    case .loading:
-      HStack {
-        Text("Region")
-        Spacer()
-        ProgressView()
-      }
-    case .failed:
-      HStack {
-        Text("Couldn’t load wine data")
-          .foregroundStyle(.secondary)
-        Spacer()
-        Button("Retry") { Task { await loadCatalog() } }
-      }
-    case .loaded:
-      NavigationLink {
-        WineRegionPickerView(regions: regions, selection: $selectedRegionID)
-      } label: {
-        LabeledContent("Region", value: selectedRegionName)
-      }
-
-      NavigationLink {
-        WineVarietyPickerView(varieties: varieties, styles: styles, selection: $selectedVarietyIDs)
-      } label: {
-        LabeledContent("Varieties", value: selectedVarietiesSummary)
-      }
-    }
-
-    TextField("Vintage (year)", text: $vintageText)
-    TextField("Alcohol by volume (%)", text: $abvText)
-  }
-
-  private var selectedRegionName: String {
-    guard let id = selectedRegionID, let region = regions.first(where: { $0.id == id }) else {
-      return "None"
-    }
-    return region.name
-  }
-
-  private var selectedVarietiesSummary: String {
-    if selectedVarietyIDs.isEmpty { return "None" }
-    let names = varieties
-      .filter { selectedVarietyIDs.contains($0.id) }
-      .map(\.name)
-      .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
-    return names.joined(separator: ", ")
+  private func loadImage(_ item: PhotosPickerItem?) async {
+    guard let item else { imageData = nil; return }
+    imageData = try? await item.loadTransferable(type: Data.self)
   }
 
   private var isValid: Bool {
@@ -164,13 +153,7 @@ struct CreateQuestionView: View {
   private func loadCatalog() async {
     catalogState = .loading
     do {
-      let api = try await store.authenticatedAPI()
-      async let regionsResult = api.wineRegions()
-      async let varietiesResult = api.wineVarieties()
-      async let stylesResult = api.wineStyles()
-      regions = try await regionsResult
-      varieties = try await varietiesResult
-      styles = try await stylesResult
+      catalog = try await WineCatalog.load(using: store)
       catalogState = .loaded
     } catch {
       catalogState = .failed
@@ -184,9 +167,18 @@ struct CreateQuestionView: View {
     isSubmitting = true
     do {
       let api = try await store.authenticatedAPI()
+
+      // Upload a newly picked image; otherwise keep the existing one (edit
+      // mode), unless the organizer chose to detach it.
+      var imageID: UUID? = removeExistingImage ? nil : existingImageID
+      if let imageData {
+        imageID = try await api.uploadImage(imageData)
+      }
+
       let trimmedNote = note.trimmingCharacters(in: .whitespaces)
       let questionRequest = CreateEventQuestionRequest(
         questionNumber: number,
+        imageID: imageID,
         note: trimmedNote.isEmpty ? nil : trimmedNote
       )
 

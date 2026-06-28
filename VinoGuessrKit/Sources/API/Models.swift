@@ -74,6 +74,7 @@ public struct Event: Sendable, Codable, Hashable, Identifiable {
   public var title: String
   public var body: String
   public var imageID: UUID?
+  public var imageURL: URL?
   public var venueName: String
   public var venueAddress: PostalAddress
   public var venueCoordinate: GeoCoordinate?
@@ -121,6 +122,7 @@ public struct EventQuestion: Sendable, Codable, Hashable, Identifiable {
   public var eventID: UUID
   public var questionNumber: Int32
   public var imageID: UUID?
+  public var imageURL: URL?
   public var note: String?
   public var createdAt: Date
 }
@@ -135,16 +137,16 @@ public struct EventQuestionCorrectAnswer: Sendable, Codable, Hashable, Identifia
   public var createdAt: Date
 }
 
-struct EventQuestionResponse: Sendable, Codable, Hashable, Identifiable {
-  var id: UUID
-  var eventQuestionID: UUID
-  var userID: UUID
-  var wineRegionID: UUID?
-  var vintage: Int32?
-  var alcoholByVolume: Double?
-  var note: String?
-  var wineVarietyIDs: [UUID]
-  var submittedAt: Date
+public struct EventQuestionResponse: Sendable, Codable, Hashable, Identifiable {
+  public var id: UUID
+  public var eventQuestionID: UUID
+  public var userID: UUID
+  public var wineRegionID: UUID?
+  public var vintage: Int32?
+  public var alcoholByVolume: Double?
+  public var note: String?
+  public var wineVarietyIDs: [UUID]
+  public var submittedAt: Date
 }
 
 // MARK: - Wine Master Data
@@ -286,12 +288,18 @@ public struct CreateEventQuestionCorrectAnswerRequest: Sendable, Codable, Hashab
   public var wineVarietyIDs: [UUID] = []
 }
 
-struct CreateEventQuestionResponseRequest: Sendable, Codable, Hashable {
-  var wineRegionID: UUID?
-  var vintage: Int32?
-  var alcoholByVolume: Double?
-  var note: String?
-  var wineVarietyIDs: [UUID]
+@MemberwiseInit(.public)
+public struct CreateEventQuestionResponseRequest: Sendable, Codable, Hashable {
+  public var wineRegionID: UUID? = nil
+  public var vintage: Int32? = nil
+  public var alcoholByVolume: Double? = nil
+  public var note: String? = nil
+  public var wineVarietyIDs: [UUID] = []
+}
+
+@MemberwiseInit(.public)
+public struct UpdateEventParticipantRequest: Sendable, Codable, Hashable {
+  public var status: EventParticipantStatus
 }
 
 // MARK: - Passkey / Email Authentication Payloads

@@ -12,6 +12,7 @@ struct MyPageView: View {
   @State private var participating: [Event] = []
   @State private var isLoading = false
   @State private var isEditingProfile = false
+  @State private var isPresentingEmailSignIn = false
 
   var body: some View {
     List {
@@ -51,7 +52,7 @@ struct MyPageView: View {
       EventDetailView(event: event)
     }
     .toolbar {
-      AccountSwitcherToolbar()
+      AccountSwitcherToolbar(isPresentingEmailSignIn: $isPresentingEmailSignIn)
       ToolbarItem(placement: .primaryAction) {
         Button("Edit Profile", systemImage: "person.text.rectangle") {
           isEditingProfile = true
@@ -60,6 +61,11 @@ struct MyPageView: View {
     }
     .sheet(isPresented: $isEditingProfile) {
       EditProfileView()
+        .environment(store)
+        .environment(errorState)
+    }
+    .sheet(isPresented: $isPresentingEmailSignIn) {
+      EmailSignInView()
         .environment(store)
         .environment(errorState)
     }

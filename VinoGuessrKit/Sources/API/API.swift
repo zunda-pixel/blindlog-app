@@ -84,7 +84,22 @@ public struct API: APIEndpoint, Sendable {
     try await send(.post, "events/\(eventID.uuidString)/participants", token: token)
   }
 
+  public func participants(eventID: UUID) async throws -> [EventParticipant] {
+    try await send(.get, "events/\(eventID.uuidString)/participants", token: token)
+  }
+
+  public func updateMyParticipation(
+    eventID: UUID,
+    _ request: UpdateEventParticipantRequest
+  ) async throws -> EventParticipant {
+    try await send(.put, "events/\(eventID.uuidString)/participants/me", token: token, body: encode(request))
+  }
+
   // MARK: Event Questions
+
+  public func questions(eventID: UUID) async throws -> [EventQuestion] {
+    try await send(.get, "events/\(eventID.uuidString)/questions", token: token)
+  }
 
   public func createQuestion(eventID: UUID, _ request: CreateEventQuestionRequest) async throws -> EventQuestion {
     try await send(.post, "events/\(eventID.uuidString)/questions", token: token, body: encode(request))
@@ -104,6 +119,16 @@ public struct API: APIEndpoint, Sendable {
   }
 
   // MARK: Correct Answers
+
+  /// Throws `AuthAPIError.unexpectedStatus(.notFound, ...)` when no answer exists
+  /// or answers are not yet published to the participant.
+  public func correctAnswer(eventID: UUID, questionID: UUID) async throws -> EventQuestionCorrectAnswer {
+    try await send(
+      .get,
+      "events/\(eventID.uuidString)/questions/\(questionID.uuidString)/correct_answer",
+      token: token
+    )
+  }
 
   public func createCorrectAnswer(
     eventID: UUID,
@@ -133,7 +158,37 @@ public struct API: APIEndpoint, Sendable {
 
   // MARK: Responses
 
-  func submitResponse(
+  /// All submitted responses for a question. Organizer only.
+  public func responses(eventID: UUID, questionID: UUID) async throws -> [EventQuestionResponse] {
+    try await send(
+      .get,
+      "events/\(eventID.uuidString)/questions/\(questionID.uuidString)/responses",
+      token: token
+    )
+  }
+
+  /// The authenticated user's own response. Throws `AuthAPIError.unexpectedStatus(.notFound, ...)`
+  /// when the user has not submitted a response yet.
+  public func myResponse(eventID: UUID, questionID: UUID) async throws -> EventQuestionResponse {
+    try await send(
+      .get,
+      "events/\(eventID.uuidString)/questions/\(questionID.uuidString)/responses/me",
+      token: token
+    )
+  }
+
+  /// The authenticated user's own response, or `nil` when none has been submitted.
+  public func myResponseIfExists(eventID: UUID, questionID: UUID) async throws -> EventQuestionResponse? {
+    try await optionalIfNotFound { try await myResponse(eventID: eventID, questionID: questionID) }
+  }
+
+  /// The correct answer when available to the caller, or `nil` when it is not
+  /// set or has not been published to the participant yet.
+  public func correctAnswerIfAvailable(eventID: UUID, questionID: UUID) async throws -> EventQuestionCorrectAnswer? {
+    try await optionalIfNotFound { try await correctAnswer(eventID: eventID, questionID: questionID) }
+  }
+
+  public func submitResponse(
     eventID: UUID,
     questionID: UUID,
     _ request: CreateEventQuestionResponseRequest
@@ -146,7 +201,7 @@ public struct API: APIEndpoint, Sendable {
     )
   }
 
-  func updateMyResponse(
+  public func updateMyResponse(
     eventID: UUID,
     questionID: UUID,
     _ request: CreateEventQuestionResponseRequest
@@ -175,5 +230,20 @@ public struct API: APIEndpoint, Sendable {
 
   public func wineRegions() async throws -> [WineRegion] {
     try await send(.get, "wine/regions", token: token)
+  }
+
+  // MARK: Helpers
+
+  /// Runs `operation`, mapping a `404 Not Found` response to `nil`. Used for
+  /// endpoints where absence is an expected, non-error outcome (an unsubmitted
+  /// response, or a correct answer not yet published).
+  private func optionalIfNotFound<T>(
+    _ operation: () async throws -> T
+  ) async throws -> T? {
+    do {
+      return try await operation()
+    } catch let AuthAPIError.unexpectedStatus(status, _) where status == .notFound {
+      return nil
+    }
   }
 }
