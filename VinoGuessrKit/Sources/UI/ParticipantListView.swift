@@ -103,6 +103,15 @@ struct ParticipantListView: View {
   }
 }
 
+#Preview {
+  @Previewable @State var store = AccountStore()
+
+  NavigationStack {
+    ParticipantListView(event: PreviewSamples.event)
+  }
+  .environment(store)
+}
+
 extension EventParticipantStatus {
   var displayName: String {
     switch self {

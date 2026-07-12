@@ -18,3 +18,9 @@ struct EventRow: View {
     }
   }
 }
+
+#Preview {
+  List {
+    EventRow(event: PreviewSamples.event)
+  }
+}

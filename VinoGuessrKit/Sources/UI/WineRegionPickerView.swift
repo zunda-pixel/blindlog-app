@@ -105,3 +105,12 @@ struct WineRegionPickerView: View {
       .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
   }
 }
+#Preview {
+  @Previewable @State var draft = PreviewSamples.draft
+
+  NavigationStack {
+    WineRegionPickerView()
+  }
+  .environment(draft)
+}
+

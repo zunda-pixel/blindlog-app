@@ -107,3 +107,10 @@ struct EmailSignInView: View {
     }
   }
 }
+
+#Preview {
+  @Previewable @State var store = AccountStore()
+
+  EmailSignInView()
+    .environment(store)
+}

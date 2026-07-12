@@ -92,3 +92,16 @@ struct WineAnswerForm: View {
     return names.isEmpty ? "None" : names.joined(separator: ", ")
   }
 }
+#Preview {
+  @Previewable @State var draft = PreviewSamples.draft
+  @Previewable @State var router = Router()
+
+  Form {
+    Section("Correct Answer") {
+      WineAnswerForm(onRetry: {})
+    }
+  }
+  .environment(draft)
+  .environment(router)
+}
+

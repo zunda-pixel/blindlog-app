@@ -237,3 +237,14 @@ struct AnswerQuestionView: View {
     }
   }
 }
+
+#Preview {
+  @Previewable @State var store = AccountStore()
+  @Previewable @State var draft = PreviewSamples.draft
+
+  NavigationStack {
+    AnswerQuestionView(event: PreviewSamples.event, question: PreviewSamples.question) { _ in }
+  }
+  .environment(store)
+  .environment(draft)
+}

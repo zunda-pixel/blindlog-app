@@ -111,3 +111,11 @@ struct VenueLocationPickerView: View {
     )
   }
 }
+#Preview {
+  @Previewable @State var coordinate: GeoCoordinate?
+
+  NavigationStack {
+    VenueLocationPickerView(coordinate: $coordinate) { _ in }
+  }
+}
+

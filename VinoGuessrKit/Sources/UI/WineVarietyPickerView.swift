@@ -82,3 +82,12 @@ struct WineVarietyPickerView: View {
     }
   }
 }
+#Preview {
+  @Previewable @State var draft = PreviewSamples.draft
+
+  NavigationStack {
+    WineVarietyPickerView()
+  }
+  .environment(draft)
+}
+

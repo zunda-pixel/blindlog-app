@@ -80,3 +80,18 @@ struct AccountSwitcherToolbar: ToolbarContent {
     }
   }
 }
+#Preview {
+  @Previewable @State var store = AccountStore()
+  @Previewable @State var errorState = ErrorState()
+  @Previewable @State var isPresentingEmailSignIn = false
+
+  NavigationStack {
+    Text("Account")
+      .toolbar {
+        AccountSwitcherToolbar(isPresentingEmailSignIn: $isPresentingEmailSignIn)
+      }
+  }
+  .environment(store)
+  .environment(errorState)
+}
+

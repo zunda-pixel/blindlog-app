@@ -54,3 +54,18 @@ extension View {
     }
   }
 }
+
+#Preview {
+  @Previewable @State var store = AccountStore()
+  @Previewable @State var errorState = ErrorState()
+  @Previewable @State var router = Router()
+  @Previewable @State var draft = PreviewSamples.draft
+
+  NavigationStack {
+    RouterDestinationView(item: .event(PreviewSamples.event))
+  }
+  .environment(store)
+  .environment(errorState)
+  .environment(router)
+  .environment(draft)
+}

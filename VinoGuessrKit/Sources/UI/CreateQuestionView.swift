@@ -217,3 +217,10 @@ struct CreateQuestionView: View {
     }
   }
 }
+
+#Preview {
+  @Previewable @State var store = AccountStore()
+
+  CreateQuestionView(eventID: PreviewSamples.eventID, suggestedNumber: 1) { _, _ in }
+    .environment(store)
+}

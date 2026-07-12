@@ -263,6 +263,19 @@ struct EventDetailView: View {
   }
 }
 
+#Preview {
+  @Previewable @State var store = AccountStore()
+  @Previewable @State var errorState = ErrorState()
+  @Previewable @State var router = Router()
+
+  NavigationStack {
+    EventDetailView(event: PreviewSamples.event)
+  }
+  .environment(store)
+  .environment(errorState)
+  .environment(router)
+}
+
 extension Event {
   /// A `CreateEventRequest` mirroring this event's current state, so a single
   /// field can be changed and PUT without dropping the others.

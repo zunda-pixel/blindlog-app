@@ -240,3 +240,16 @@ struct QuestionListView: View {
     editingTarget = EditTarget(question: question, answer: answer)
   }
 }
+#Preview {
+  @Previewable @State var store = AccountStore()
+  @Previewable @State var errorState = ErrorState()
+  @Previewable @State var router = Router()
+
+  NavigationStack {
+    QuestionListView(event: PreviewSamples.event)
+  }
+  .environment(store)
+  .environment(errorState)
+  .environment(router)
+}
+

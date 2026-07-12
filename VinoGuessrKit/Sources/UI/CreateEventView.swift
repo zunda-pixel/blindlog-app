@@ -380,6 +380,20 @@ struct CreateEventView: View {
   }
 }
 
+#Preview {
+  @Previewable @State var store = AccountStore()
+
+  CreateEventView { _ in }
+    .environment(store)
+}
+
+#Preview("Edit Event") {
+  @Previewable @State var store = AccountStore()
+
+  CreateEventView(editing: PreviewSamples.event) { _ in }
+    .environment(store)
+}
+
 extension Currency {
   /// A human-readable picker row, e.g. "JPY — Japanese Yen", falling back to
   /// just the code when the locale has no localized currency name.

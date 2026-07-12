@@ -95,3 +95,14 @@ struct EventListView: View {
     }
   }
 }
+#Preview {
+  @Previewable @State var store = AccountStore()
+  @Previewable @State var router = Router()
+
+  NavigationStack {
+    EventListView()
+  }
+  .environment(store)
+  .environment(router)
+}
+

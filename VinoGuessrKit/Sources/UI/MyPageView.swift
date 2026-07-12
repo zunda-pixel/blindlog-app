@@ -98,3 +98,16 @@ struct MyPageView: View {
     }
   }
 }
+
+#Preview {
+  @Previewable @State var store = AccountStore()
+  @Previewable @State var errorState = ErrorState()
+  @Previewable @State var router = Router()
+
+  NavigationStack {
+    MyPageView()
+  }
+  .environment(store)
+  .environment(errorState)
+  .environment(router)
+}

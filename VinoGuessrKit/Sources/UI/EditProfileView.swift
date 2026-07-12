@@ -260,3 +260,10 @@ struct EditProfileView: View {
     }
   }
 }
+
+#Preview {
+  @Previewable @State var store = AccountStore()
+
+  EditProfileView()
+    .environment(store)
+}
