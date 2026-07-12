@@ -52,6 +52,7 @@ struct VenueLocationPickerView: View {
                 .foregroundStyle(.secondary)
             }
           }
+          .frame(maxWidth: .infinity, alignment: .leading)
           .contentShape(.rect)
         }
       }

@@ -49,6 +49,8 @@ struct EventListView: View {
             router.items.append(.event(event))
           } label: {
             EventRow(event: event)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .contentShape(.rect)
           }
           .buttonStyle(.plain)
         }

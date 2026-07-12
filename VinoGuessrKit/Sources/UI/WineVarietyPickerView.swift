@@ -41,6 +41,8 @@ struct WineVarietyPickerView: View {
           Section(style.name) {
             ForEach(items) { variety in
               row(variety)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(.rect)
             }
           }
         }
@@ -62,7 +64,6 @@ struct WineVarietyPickerView: View {
             .foregroundStyle(.tint)
         }
       }
-      .contentShape(.rect)
     }
   }
 

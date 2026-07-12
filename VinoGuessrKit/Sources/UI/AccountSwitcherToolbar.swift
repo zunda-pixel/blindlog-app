@@ -26,6 +26,8 @@ struct AccountSwitcherToolbar: ToolbarContent {
                 ? "checkmark.circle.fill"
                 : "person.circle"
             )
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(.rect)
           }
         }
 

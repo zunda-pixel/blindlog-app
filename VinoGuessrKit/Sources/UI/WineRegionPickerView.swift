@@ -46,6 +46,8 @@ struct WineRegionPickerView: View {
       } else {
         ForEach(flatMatches) { region in
           regionButton(region)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(.rect)
         }
       }
     }
@@ -71,7 +73,6 @@ struct WineRegionPickerView: View {
           .foregroundStyle(.tint)
       }
     }
-    .contentShape(.rect)
   }
 
   // MARK: Data

@@ -27,6 +27,8 @@ struct MyPageView: View {
               router.items.append(.event(event))
             } label: {
               EventRow(event: event)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(.rect)
             }
             .buttonStyle(.plain)
           }
@@ -43,12 +45,15 @@ struct MyPageView: View {
               router.items.append(.event(event))
             } label: {
               EventRow(event: event)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(.rect)
             }
             .buttonStyle(.plain)
           }
         }
       }
     }
+    .listStyle(.insetGrouped)
     .overlay {
       if isLoading && organized.isEmpty && participating.isEmpty {
         ProgressView()

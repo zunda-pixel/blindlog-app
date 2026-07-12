@@ -156,6 +156,7 @@ struct QuestionListView: View {
           .lineLimit(2)
       }
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
     .contentShape(.rect)
   }
 
