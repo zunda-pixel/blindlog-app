@@ -27,6 +27,7 @@ public struct RootView: View {
       .buttonStyle(.plain)
       .listStyle(.plain)
       .textSelection(.enabled)
+      .scrollEdgeEffectStyle(.soft, for: .top)
       .task { await store.bootstrap() }
   }
 
