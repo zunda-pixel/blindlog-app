@@ -24,6 +24,9 @@ public struct RootView: View {
       } message: {
         Text(errorState.message ?? "")
       }
+      .buttonStyle(.plain)
+      .listStyle(.plain)
+      .textSelection(.enabled)
       .task { await store.bootstrap() }
   }
 
